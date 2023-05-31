@@ -1,0 +1,7 @@
+{
+  "name": "Docker Environment",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "web",
+  "workspaceFolder": "/code",
+  "features": { "ghcr.io/devcontainers/features/github-cli": {} }
+}
