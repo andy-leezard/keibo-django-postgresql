@@ -3,6 +3,7 @@ FROM python:3.11-slim-buster
 
 # Install Git
 RUN apt-get update && apt-get install -y git
+RUN git config --global core.autocrlf input
 
 # Set environment varibles
 ENV PYTHONDONTWRITEBYTECODE 1
