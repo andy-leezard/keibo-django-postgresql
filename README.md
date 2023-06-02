@@ -10,6 +10,16 @@ Create and start containers of all services defined in `docker-compose.yml`
 docker-compose up
 ```
 
+If you are attempting to re-build
+```
+docker-compose build --no-cache
+docker-compose up
+```
+or
+```
+docker-compose up --build
+```
+
 Migrate
 ```
 docker-compose exec web python manage.py migrate
@@ -18,6 +28,14 @@ docker-compose exec web python manage.py migrate
 Create Superuser
 ```
 docker-compose exec web python manage.py createsuperuser
+```
+
+## Troubleshooting database related problems
+
+When removing containers, do not forget to remove the volumes as well.
+Warning: this will erase all databases
+```
+docker-compose down --volumes
 ```
 
 ### Developing in the Dev Container
