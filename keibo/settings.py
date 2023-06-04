@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'core',
+    'oauth2_provider',
 ]
 
 MIDDLEWARE = [
@@ -92,10 +93,11 @@ DATABASES = {
     }
 }
 
+# Using OAuth powered by OAuth Toolkit
+AUTH_USER_MODEL='core.OAuthUser'
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
