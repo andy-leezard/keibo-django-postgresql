@@ -2,7 +2,7 @@
 FROM python:3.11-slim-buster
 
 # Install Git
-RUN apt-get update && apt-get install -y git
+RUN apt-get update && apt-get install -y curl git
 RUN git config --global core.autocrlf input
 
 # Set environment varibles
