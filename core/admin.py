@@ -8,13 +8,13 @@ class WalletAdmin(admin.ModelAdmin):
 
 @admin.register(WalletUser)
 class WalletUserAdmin(admin.ModelAdmin):
-    list_display = ['wallet', 'user', 'role', 'granted_at', 'invited_by']
+    list_display = ['wallet', 'role', 'granted_at'] # 'user' , 'invited_by'
     list_filter = ['role']
-    raw_id_fields = ['wallet', 'user', 'invited_by']
+    raw_id_fields = ['wallet'] # 'user', 'invited_by'
 
 @admin.register(Transaction)
 class TransactionAdmin(admin.ModelAdmin):
-    list_display = ['wallet', 'amount', 'date', 'type', 'added_by']
+    list_display = ['wallet', 'amount', 'date', 'type' ] # 'added_by'
     list_filter = ['type']
     search_fields = ['wallet__name', 'description']
-    raw_id_fields = ['wallet', 'added_by']
+    raw_id_fields = ['wallet'] # 'added_by'
