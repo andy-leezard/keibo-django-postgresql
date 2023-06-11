@@ -1,8 +1,6 @@
 from django.contrib import admin
 from .models import OAuthUser, Wallet, WalletUser, Transaction
 
-admin.site.register(OAuthUser)
-
 @admin.register(Wallet)
 class WalletAdmin(admin.ModelAdmin):
     list_display = ['name', 'balance', 'asset_id', 'name', 'category', 'wallet_type']

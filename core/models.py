@@ -2,9 +2,6 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 import decimal
 
-class OAuthUser(AbstractUser):
-    pass
-
 class AssetCategory(models.TextChoices):
     CASH = 'cash'
     EQUITY = 'equity'
