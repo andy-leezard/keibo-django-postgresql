@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import OAuthUser, Wallet, WalletUser, Transaction
+from .models import Wallet, WalletUser, Transaction
 
 @admin.register(Wallet)
 class WalletAdmin(admin.ModelAdmin):

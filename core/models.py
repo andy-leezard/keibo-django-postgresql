@@ -33,10 +33,10 @@ ROLES = [
 
 class WalletUser(models.Model):
     wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name='wallet_users')
-    user = models.ForeignKey(OAuthUser, on_delete=models.CASCADE)
+    # user = models.ForeignKey(OAuthUser, on_delete=models.CASCADE)
     role = models.IntegerField(choices=ROLES)
     granted_at = models.DateTimeField(auto_now_add=True)
-    invited_by = models.ForeignKey(OAuthUser, on_delete=models.SET_NULL, null=True, related_name='invitations')
+    # invited_by = models.ForeignKey(OAuthUser, on_delete=models.SET_NULL, null=True, related_name='invitations')
 
 class Transaction(models.Model):
     wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name='transactions')
@@ -48,4 +48,4 @@ class Transaction(models.Model):
     ]
     type = models.CharField(max_length=7, choices=TRANSACTION_TYPES)
     description = models.CharField(max_length=200, blank=True)
-    added_by = models.ForeignKey(OAuthUser, on_delete=models.CASCADE)
+    # added_by = models.ForeignKey(OAuthUser, on_delete=models.CASCADE)
