@@ -1,5 +1,6 @@
 # Pull the official base image
 FROM python:3.11-slim-buster
+LABEL maintainer="https://github.com/AndyLeezard"
 
 # Install Git
 RUN apt-get update && apt-get install -y curl git
