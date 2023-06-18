@@ -1,6 +1,22 @@
-from django.urls import path
-from . import views
+from django.urls import path, re_path
+from .views import (
+    hello_world,
+    CustomProviderAuthView,
+    CustomTokenObtainPairView,
+    CustomTokenRefreshView,
+    CustomTokenVerifyView,
+    LogoutView
+)
 
 urlpatterns = [
-    path("hello_world/", views.hello_world, name="hello_world"),
+    re_path(
+        r'^o/(?P<provider>\S+)/$',
+        CustomProviderAuthView.as_view(),
+        name='provider-auth'
+    ),
+    path("hello_world/", hello_world, name="hello_world"),
+    path('jwt/create/', CustomTokenObtainPairView.as_view()),
+    path('jwt/refresh/', CustomTokenRefreshView.as_view()),
+    path('jwt/verify/', CustomTokenVerifyView.as_view()),
+    path('logout/', LogoutView.as_view()),
 ]
