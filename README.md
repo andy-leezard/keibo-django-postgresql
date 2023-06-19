@@ -1,41 +1,64 @@
 # Initialize
 
-## Using Docker
+
+## Using Docker (Dev environment)
+
+Make sure to create a copy of `Dockerfile` as `Dockerfile-local` and `Dockerfile-production`.
+This is to use a non-root user on production and a root user on development environements.
+**Remove any non-root user related commands** from `Dockerfile` and `Dockerfile-local`.
+This way, VS Code will be able to connect to the dev container with the full access to workspace file system.
 
 Assuming all docker-related configuration on OS level is complete, run following commands.
 
 Create and start containers of all services defined in `docker-compose.yml`
-```
+```bash
 docker-compose up
 ```
 
 If you are attempting to re-build
-```
+```bash
 docker-compose build --no-cache
 docker-compose up
 ```
 or
-```
+```bash
 docker-compose up --build
 ```
 
 Migrate
-```
-docker-compose exec web python manage.py migrate
+```bash
+docker-compose exec app python manage.py migrate
 ```
 
 Create Superuser
+```bash
+docker-compose exec app python manage.py createsuperuser
 ```
-docker-compose exec web python manage.py createsuperuser
+
+Bypass Email Activation for Superuser
+(`is_active` field of user is initialized as `False` by default)
+```bash
+python manage.py shell
+from core.models import KeiboUser
+user = KeiboUser.objects.get(email='your-email@example.com')
+user.is_active = True
+user.save()
+print(user.is_staff, user.is_superuser, user.is_active)
 ```
 
-## Steps to follow in a new dev env
+Reset Superuser password
+```bash
+python manage.py changepassword
+```
 
-Go to `http://127.0.0.1:8000/admin/sites/site/1/change/` and change the domain name to `localhost:8000`.
-`localhost` should be listed in the `ALLOWED_HOSTS` in the `settings.py`.
+## Deployment
 
-
-
+Test the production environment before deploying.
+```bash
+docker-compose -f docker-compose-production.yml down --volumes
+docker-compose -f docker-compose-production.yml build
+docker-compose -f docker-compose-production.yml up
+```
 ## Troubleshooting database related problems
 
 When removing containers, do not forget to remove the volumes as well.
@@ -86,7 +109,3 @@ Assuming Superuser is already created
 ```
 http://127.0.0.1:8000/admin
 ```
-
-# Deploy
-
-Add the public url to `ALLOWED_HOSTS` settings.
