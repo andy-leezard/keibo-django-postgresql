@@ -3,7 +3,7 @@
   "dockerComposeFile": "docker-compose.yml",
   "service": "app",
   "workspaceFolder": "/app",
-  "remoteUser": "appuser",
+  "remoteUser": "root",
   "forwardPorts": [8000],
   "features": { "ghcr.io/devcontainers/features/github-cli": {} }
 }
