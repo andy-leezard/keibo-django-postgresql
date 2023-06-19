@@ -1,7 +1,0 @@
-{
-  "name": "Docker Environment",
-  "dockerComposeFile": "docker-compose.yml",
-  "service": "web",
-  "workspaceFolder": "/app",
-  "features": { "ghcr.io/devcontainers/features/github-cli": {} }
-}
