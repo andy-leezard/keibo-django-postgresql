@@ -23,21 +23,26 @@ services:
     build:
       context: .
     restart: always
-    command: >
-      sh -c "python manage.py wait_for_db &&
-             python manage.py migrate &&
-             python manage.py runserver 0.0.0.0:8000"
-    ports:
-      - 8000:8000
     volumes:
-      - ./app:/app
-      - ./data/web:/vol/web
+      - static-data:/vol/web
     env_file:
       - .env
     depends_on:
       - db
       - redis
 
+  proxy:
+    build:
+      context: ./proxy
+    restart: always
+    depends_on:
+      - app
+    ports:
+      - 80:8000
+    volumes:
+      - static-data:/vol/static
+
 volumes:
   postgres-data:
   redis-data:
+  static-data:
