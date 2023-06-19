@@ -1,6 +1,5 @@
 # Initialize
 
-
 ## Using Docker
 
 Assuming all docker-related configuration on OS level is complete, run following commands.
@@ -29,6 +28,13 @@ Create Superuser
 ```
 docker-compose exec web python manage.py createsuperuser
 ```
+
+## Steps to follow in a new dev env
+
+Go to `http://127.0.0.1:8000/admin/sites/site/1/change/` and change the domain name to `localhost:8000`.
+`localhost` should be listed in the `ALLOWED_HOSTS` in the `settings.py`.
+
+
 
 ## Troubleshooting database related problems
 
@@ -80,3 +86,7 @@ Assuming Superuser is already created
 ```
 http://127.0.0.1:8000/admin
 ```
+
+# Deploy
+
+Add the public url to `ALLOWED_HOSTS` settings.
