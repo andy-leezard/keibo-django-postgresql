@@ -24,6 +24,8 @@ urlpatterns = [
     path("api/", include("core.urls")),
 ]
 
-urlpatterns += static(settings.STATIC_URL,
-                      document_root=settings.STATICFILES_DIRS)
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+if settings.DEBUG:
+    urlpatterns += static(
+        settings.MEDIA_URL,
+        document_root=settings.MEDIA_ROOT,
+    )
