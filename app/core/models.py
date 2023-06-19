@@ -32,7 +32,7 @@ class KeiboUserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-class KeiboUser(AbstractBaseUser):
+class KeiboUser(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
     email = models.EmailField(max_length=255,unique=True)
