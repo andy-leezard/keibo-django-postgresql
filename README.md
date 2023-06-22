@@ -44,6 +44,7 @@ user = KeiboUser.objects.get(email='your-email@example.com')
 user.is_active = True
 user.save()
 print(user.is_staff, user.is_superuser, user.is_active)
+quit()
 ```
 
 Reset Superuser password
