@@ -53,11 +53,24 @@ python manage.py changepassword
 
 ## Deployment
 
-Test the production environment before deploying.
+(At the first deployment) test the production environment locally before deploying.
 ```bash
 docker-compose -f docker-compose-production.yml down --volumes
 docker-compose -f docker-compose-production.yml build
 docker-compose -f docker-compose-production.yml up
+```
+
+Assuming the EC2 instance on AWS is configured, and connected to the server using SSH (Putty required if Windows), and cd'd into the pulled git repo on the machine
+Remotely create superuser using SSH
+```bash
+docker-compose -f docker-compose-production.yml run --rm app sh -c "python manage.py createsuperuser"
+```
+
+Update the code and re-build the container with the latest version
+```bash
+git pull origin
+docker-compose -f docker-compose-production.yml build app
+docker-compose -f docker-compose-production.yml up --no-deps -d app
 ```
 ## Troubleshooting database related problems
 
