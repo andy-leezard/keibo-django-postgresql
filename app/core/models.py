@@ -17,7 +17,7 @@ class KeiboUserManager(BaseUserManager):
         user = self.model(email=email, **kwargs)
 
         user.set_password(password)
-        user.save()
+        user.save(using=self._db)
 
         return user
 
@@ -37,7 +37,7 @@ class KeiboUser(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(max_length=255)
     email = models.EmailField(max_length=255,unique=True)
 
-    is_active = models.BooleanField(default=False) # Djoser needs it false either way.
+    is_active = models.BooleanField(default=True) # Djoser needs it false either way.
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
 
