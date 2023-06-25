@@ -52,32 +52,114 @@ Reset Superuser password
 python manage.py changepassword
 ```
 
-## Deployment
+## Infrastructure architecture
 
-(At the first deployment) test the production environment locally before deploying.
+`Client`
+⬇️
+`Amazon DNS (Hosted Zones)`
+⬇️
+`Amazon CloudFront`
+⬇️
+`AWS Load Balancer`
+⬇️
+`Nginx`
+⬇️
+`uWSGI`
+⬇️
+`Django Application`
+
+## Deployment using AWS
+
+(Priori to the first deployment) test the production environment locally before deploying.
 ```bash
 docker-compose -f docker-compose-production.yml down --volumes
 docker-compose -f docker-compose-production.yml build
 docker-compose -f docker-compose-production.yml up
 ```
 
-Assuming the EC2 instance on AWS is configured, and connected to the server using SSH (Putty required if Windows), and cd'd into the pulled git repo on the machine
-Remotely create superuser using SSH
+1. Go to AWS. Create an EC2 instance. In this doc, I'll be using `Amazon Linux`.
+
+Warning: *Make sure you are using the right region. It is important not to switch the region before all steps are completed to make sure all configuration is in order. For example, If you switch the region, you won't be able to see your EC2 instance previously created in another region.*
+
+2. Configure a `security group` to attach to the EC2 instance. (ex: HTTPS TCP PORT 443,  HTTP TCP PORT 80, SSH TCP PORT 22...)
+3. Create an `elastic ip address` to attach to the EC2 instance.
+4. Connect to the EC2 instance's terminal using SSH connection (Putty required if Windows). Install dependencies and configure the environment using these commands:
+
 ```bash
-docker-compose -f docker-compose-production.yml run --rm app sh -c "python manage.py createsuperuser"
+sudo yum install git -y
+sudo yum install -y docker
+sudo systemctl enable docker.service
+sudo systemctl start docker.service
+sudo usermod -aG docker ec2-user
+sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+docker-compose version
+sudo chkconfig docker on
 ```
 
-Update the code and re-build the container with the latest version
+5. Set up EC2 instance to git clone this repo
+```bash
+git clone https://github.com/AndyLeezard/keibo-django-postgresql.git
+```
+
+6. cd into the repo folder, create a dotenv file and edit
+```bash
+touch .env
+nano .env
+```
+
+7. Build and run containers
+```bash
+docker-compose -f docker-compose-production.yml up -d
+```
+
+8. Check docker container status
+```bash
+docker ps
+docker logs keibo-django-postgresql-app-1
+docker logs keibo-django-postgresql-proxy-1
+```
+
+9. Create a superuser
+```bash
+docker-compose exec app python manage.py createsuperuser
+```
+
+- At this point, the webapp is running OK. However, the connection protocole is unsecured (`http`).
+To properly implement secure cookies (especially important for Chromium-based browsers), the `SSL` setup is required.
+
+10. Buy a domain on [AWS Route 53](https://us-east-1.console.aws.amazon.com/route53/domains/home#/)
+this will be necessary to issue a `certificate` using `ACM`. (If I'm wrong and there's another cheaper way pls correct me.)
+
+11. Use `ACM` to generate a certificate.
+
+12. Create a `target group` that will be associated with an `Eslastic Load Balancer (ELB)`.
+Type = Instance.
+
+Warning: *Make sure to click on the `Include as pending below` button before saving. Also Make sure you're still on the right region. otherwise it will be invisible.*
+
+13. On the EC2 page, look for the `load balancer` options and set up an `ELB` by choosing the `Application Load Balancer (ALB)` option.
+By default, a HTTP listner will be created.
+Add a HTTPS listener and choose the `target group` previously created.
+Health check path: `/api/hello_world`
+
+14. Create a Distribution on `CloudFront` that will link your `ELB` and your domain. Here you have the option to auto-convert any http request to https. The distribution is only active if it is connected to a url on `Hosted Zones` in `Route53` which is the AWS interface.
+
+15. Configure the connection between the domain and your `CloudFront` distribution on `Hosted Zones of Route53`, .
+
+
+## Update the code and re-build the container with the latest version
 ```bash
 git pull origin
 docker-compose -f docker-compose-production.yml build app
 docker-compose -f docker-compose-production.yml up --no-deps -d app
 ```
+
 ## Troubleshooting database related problems
 
 When removing containers, do not forget to remove the volumes as well.
 Warning: this will erase all databases
-```
+```bash
 docker-compose down --volumes
 ```
 
