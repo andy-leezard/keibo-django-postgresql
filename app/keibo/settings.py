@@ -13,7 +13,6 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 from os import getenv, path
 from pathlib import Path
 from django.core.management.utils import get_random_secret_key
-from datetime import timedelta
 import dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -37,8 +36,7 @@ SECRET_KEY = getenv('DJANGO_SECRET_KEY', get_random_secret_key())
 DEBUG = getenv('DEBUG', 'False') == 'True'
 
 # Prevent HTTP Host header attacks
-ALLOWED_HOSTS = getenv('DJANGO_ALLOWED_HOSTS',
-                       '127.0.0.1,localhost').split(',')
+ALLOWED_HOSTS = getenv('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
 
 # Application definition
 INSTALLED_APPS = [
@@ -163,7 +161,7 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
-    ]
+    ],
 }
 
 # == == == == == == == #
@@ -177,7 +175,7 @@ DJOSER = {
     'USER_CREATE_PASSWORD_RETYPE': True,
     'PASSWORD_RESET_CONFIRM_RETYPE': True,
     'TOKEN_MODEL': None,
-    'SOCIAL_AUTH_ALLOWED_REDIRECT_URIS': getenv('REDIRECT_URLS').split(',')
+    'SOCIAL_AUTH_ALLOWED_REDIRECT_URIS': getenv('REDIRECT_URLS').split(','),
 }
 
 AUTH_COOKIE = 'access'
@@ -192,14 +190,11 @@ AUTH_COOKIE_SAMESITE = 'None'
 # == == == == == == == == == #
 
 CORS_ORIGIN_ALLOW_ALL = True
-CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = ('GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS')
-
-CORS_ALLOWED_ORIGINS = getenv(
-    'CORS_ALLOWED_ORIGINS',
-    'http://localhost:3000,http://127.0.0.1:3000'
-).split(',')
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = getenv(
+    'CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000'
+).split(',')
 
 # == == == == == == == == == #
 #   Extended for Auth User   #
@@ -238,6 +233,6 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = getenv('GOOGLE_AUTH_SECRET_KEY')
 SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
     'https://www.googleapis.com/auth/userinfo.email',
     'https://www.googleapis.com/auth/userinfo.profile',
-    'openid'
+    'openid',
 ]
 SOCIAL_AUTH_GOOGLE_OAUTH2_EXTRA_DATA = ['first_name', 'last_name']
