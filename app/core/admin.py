@@ -19,7 +19,15 @@ class WalletUserAdmin(admin.ModelAdmin):
 
 @admin.register(Transaction)
 class TransactionAdmin(admin.ModelAdmin):
-    list_display = ['wallet', 'amount', 'date', 'type']  # 'added_by'
-    list_filter = ['type']
-    search_fields = ['wallet__name', 'description']
-    raw_id_fields = ['wallet']  # 'added_by'
+    list_display = [
+        'beneficiary',
+        'donor',
+        'amount',
+        'date',
+        'description',
+        'confirmed_by_beneficiary',
+        'confirmed_by_donor',
+    ]  # 'added_by'
+    list_filter = ['confirmed_by_beneficiary', 'confirmed_by_donor']
+    search_fields = ['beneficiary__name', 'donor__name', 'description']
+    raw_id_fields = ['beneficiary', 'donor']  # 'added_by'
