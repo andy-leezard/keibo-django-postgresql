@@ -181,7 +181,14 @@ git config --global --get core.autocrlf
 
 ### Checking logs
 
+Listen to a container logs
+
+```bash
+docker ps -a
+docker logs --follow <container ID>
 ```
+
+```bash
 docker-compose logs
 ```
 
