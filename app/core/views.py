@@ -12,7 +12,7 @@ from rest_framework_simplejwt.views import (
 
 
 def hello_world(request):
-    return JsonResponse({"message": "hello_world two"})
+    return JsonResponse({"message": "hello_world"})
 
 
 class CustomProviderAuthView(ProviderAuthView):
