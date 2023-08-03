@@ -78,11 +78,12 @@ ROLES = [
     (1, 'Viewer'),
     (2, 'Editor'),
     (3, 'Manager'),
-    (4, 'Admin'),
+    (4, 'Owner'),
 ]
 
 
 class WalletUser(models.Model):
+    user = models.ForeignKey(KeiboUser, on_delete=models.CASCADE)
     wallet = models.ForeignKey(
         Wallet, on_delete=models.CASCADE, related_name='wallet_users'
     )
