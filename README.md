@@ -155,6 +155,23 @@ docker-compose -f docker-compose-production.yml build app
 docker-compose -f docker-compose-production.yml up --no-deps -d app
 ```
 
+## Troubleshooting 'No space left on device' while building a new docker image
+Check the disk status using this command:
+```bash
+df -h
+```
+
+If really there is no space, you might have to prune old docker images.
+```bash
+docker systme prune
+```
+
+*You can also prune the volumens. Do this if you're not storing files locally (which you shouldn't be anyway, they should be in something like AWS S3) -Nitin Nain from StackOverflow-*
+
+```bash
+docker systme prune --volumes
+```
+
 ## Troubleshooting database related problems
 
 When removing containers, do not forget to remove the volumes as well.
