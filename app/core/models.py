@@ -55,20 +55,16 @@ class AssetCategory(models.TextChoices):
     OTHER = 'other'
 
 
-WALLET_TYPE_CHOICES = [
-    ('PUBLIC', 'Public'),
-    ('PRIVATE', 'Private'),
-]
-
-
 class Wallet(models.Model):
     asset_id = models.CharField(max_length=24)
+    # name of the financial institution or the trademark of the personal wallet provider
+    provider = models.CharField(max_length=24)
     name = models.CharField(max_length=200)
     category = models.CharField(max_length=10, choices=AssetCategory.choices)
     balance = models.DecimalField(
         max_digits=19, decimal_places=8, default=decimal.Decimal('0.00')
     )
-    wallet_type = models.CharField(max_length=7, choices=WALLET_TYPE_CHOICES)
+    is_public = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
