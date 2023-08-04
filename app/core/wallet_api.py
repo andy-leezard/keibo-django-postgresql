@@ -30,6 +30,13 @@ def get_wallets(request, role=None, range=None):
 
     # Get the Wallet objects associated with the wallet_users
     wallets = [wallet_user.wallet for wallet_user in wallet_users_query]
+    serialized_wallets = WalletSerializer(wallets, many=True).data
 
-    serializer = WalletSerializer(wallets, many=True)
-    return Response(serializer.data)
+    # Attach the role property from the corresponding WalletUser model
+    serialized_wallets = []
+    for wallet_user in wallet_users_query:
+        wallet_data = WalletSerializer(wallet_user.wallet).data
+        wallet_data['role'] = wallet_user.role
+        serialized_wallets.append(wallet_data)
+
+    return Response(serialized_wallets)

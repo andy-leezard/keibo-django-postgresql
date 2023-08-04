@@ -55,6 +55,8 @@ INSTALLED_APPS = [
     'social_django',
     # Apps
     'core',
+    # Scheduled tasks
+    'django_celery_beat',
 ]
 
 MIDDLEWARE = [
@@ -89,6 +91,40 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'keibo.wsgi.application'
 
+# == == == == == == == == == == == == == == == == == #
+#   Extended for caching AND ws handling with redis  #
+# == == == == == == == == == == == == == == == == == #
+
+ASGI_APPLICATION = "keibo.routing.application"
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': getenv('REDIS_URL'),  # 'redis://redis:6379/1'
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+    }
+}
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('redis', 6379)],
+        },
+    },
+}
+
+# CELERY configuration
+CELERY_BROKER_URL = getenv('REDIS_URL')  # "redis://localhost"
+CELERY_RESULT_BACKEND = getenv('REDIS_URL')  # "redis://localhost"
+
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TIMEZONE = "Europe/Paris"
+CELERY_ENABLE_UTC = False
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases

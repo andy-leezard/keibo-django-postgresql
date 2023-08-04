@@ -2,7 +2,7 @@
 FROM python:3.11.4-alpine3.18
 LABEL maintainer="https://github.com/AndyLeezard"
 
-# Set environment varibles
+# Set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
@@ -38,22 +38,13 @@ RUN /py/bin/pip install -r /requirements.txt
 # Remove temporary build dependencies
 RUN apk del .tmp-deps
 
-# Create a non-root user for the container
-RUN adduser --disabled-password --no-create-home appuser
-
 # Create directories for static and media files
 RUN mkdir -p /vol/web/static && \
     mkdir -p /vol/web/media
-
-# Set ownership and permissions for directories
-RUN chown -R appuser:appuser /vol && \
-    chmod -R 755 /vol
 
 # Grant executable permissions to scripts
 RUN chmod -R +x /scripts
 
 ENV PATH="/scripts:/py/bin:$PATH"
-
-USER appuser
 
 CMD ["run.sh"]

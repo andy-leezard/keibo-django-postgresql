@@ -5,7 +5,15 @@ from .models import WalletUser, Wallet
 class WalletSerializer(serializers.ModelSerializer):
     class Meta:
         model = Wallet
-        fields = ['id', 'name', 'balance', 'asset_id']
+        fields = [
+            'id',
+            'provider',
+            'category',
+            'asset_id',
+            'balance',
+            'name',
+            'is_public',
+        ]
 
 
 class WalletUserSerializer(serializers.ModelSerializer):

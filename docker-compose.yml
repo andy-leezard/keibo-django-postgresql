@@ -37,6 +37,26 @@ services:
     depends_on:
       - db
       - redis
+  
+  celery_worker:
+    build:
+      context: .
+    command: ["celery", "-A", "keibo", "worker", "--loglevel=info"]
+    depends_on:
+      - redis
+      - db
+    env_file:
+      - .env
+
+  celery_beat:
+    build:
+      context: .
+    command: ["celery", "-A", "keibo", "beat", "--loglevel=info"]
+    depends_on:
+      - redis
+      - db
+    env_file:
+      - .env
 
 volumes:
   postgres-data:
