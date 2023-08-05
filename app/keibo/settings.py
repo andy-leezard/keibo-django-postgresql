@@ -129,14 +129,6 @@ CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_SOFT_TIME_LIMIT = 240
 CELERY_TASK_TIME_LIMIT = 300
 
-# Statically declared CELERY BEAT schedules
-"""
-# from .schedules import *
-CELERY_BEAT_SCHEDULE = {
-    'my_scheduled_task': my_scheduled_task,
-}
-"""
-
 # Fixed API env var
 API_PROVIDER_KEY = getenv('API_PROVIDER_KEY')
 API_PROVIDER_KEY_HEADER = getenv('API_PROVIDER_KEY_HEADER')
@@ -147,6 +139,28 @@ API_EXCHANGE_RATES = getenv('API_EXCHANGE_RATES')
 # Dynamic API - Crypto prices
 API_CRYPTO_PRICES_HOST = getenv('API_CRYPTO_PRICES_HOST')
 API_CRYPTO_PRICES = getenv('API_CRYPTO_PRICES')
+# Dynamic API - Indexes
+API_FRED_KEY = getenv('API_FRED_KEY')
+
+# Logging configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        '': {'level': 'INFO', 'handlers': ['console']},  # <-- root logger
+    },
+}
+
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases

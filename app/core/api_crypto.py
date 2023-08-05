@@ -1,4 +1,5 @@
 import requests
+import logging
 from core.models import Asset, AssetCategory
 from keibo.settings import (
     API_PROVIDER_KEY_HEADER,
@@ -7,6 +8,8 @@ from keibo.settings import (
     API_CRYPTO_PRICES_HOST,
     API_CRYPTO_PRICES,
 )
+
+logger = logging.getLogger(__name__)
 
 SUPPORTED_CRYPTOS = {
     'bitcoin',
@@ -38,7 +41,7 @@ def get_crypto_prices():
         response = requests.get(url, headers=headers, params=querystring)  # type: ignore
         response.raise_for_status()  # Raises a HTTPError if the response status is 4xx, 5xx
     except requests.exceptions.RequestException as e:
-        print(f"Request to {url} failed with exception: {e}")
+        logger.info(f"Request to {url} failed with exception: {e}")
         return
 
     crypto_data = response.json()
@@ -60,4 +63,4 @@ def get_crypto_prices():
                     id=crypto, exchange_rate=rate, category=AssetCategory.CRYPTO
                 )
 
-    print(f"Crypto: added {new_assets} and updated {updated_assets} assets!")
+    logger.info(f"Crypto: added {new_assets} and updated {updated_assets} assets!")

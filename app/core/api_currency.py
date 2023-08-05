@@ -1,5 +1,6 @@
-from decimal import Decimal
 import requests
+import logging
+from decimal import Decimal
 from core.models import Asset, AssetCategory
 from keibo.settings import (
     API_PROVIDER_KEY_HEADER,
@@ -8,6 +9,8 @@ from keibo.settings import (
     API_EXCHANGE_RATES_HOST,
     API_EXCHANGE_RATES,
 )
+
+logger = logging.getLogger(__name__)
 
 SUPPORTED_CURRENCIES = {
     'usd',
@@ -36,26 +39,26 @@ def get_exchange_rates():
 
         response.raise_for_status()  # Raises a HTTPError if the response status is 4xx, 5xx
     except requests.exceptions.RequestException as e:
-        print(f"Request to {url} failed with exception: {e}")
+        logger.info(f"Request to {url} failed with exception: {e}")
         return
 
     data = response.json()
     rates = data.get('rates')
 
     if not isinstance(rates, dict):
-        print("Unexpected data format. 'rates' should be a dictionary.")
+        logger.info("Unexpected data format. 'rates' should be a dictionary.")
         return
 
     for currency, rate in rates.items():
         if not isinstance(currency, str):
-            print(
+            logger.info(
                 f"Unexpected currency type. Currencies should be strings, but got {type(currency)}."
             )
             return
         if not isinstance(
             rate, (int, float, Decimal)
         ):  # Accept any kind of number, for flexibility
-            print(
+            logger.info(
                 f"Unexpected rate type. Rates should be numbers, but got {type(rate)}."
             )
             return
@@ -77,4 +80,4 @@ def get_exchange_rates():
                     id=currency, exchange_rate=rate, category=AssetCategory.CASH
                 )
 
-    print(f"Currencies: added {new_assets} and updated {updated_assets} assets!")
+    logger.info(f"Currencies: added {new_assets} and updated {updated_assets} assets!")
