@@ -44,7 +44,7 @@ services:
   celery_beat:
     build:
       context: .
-    command: ["celery", "-A", "keibo", "beat", "--loglevel=info"]
+    command: ["celery", "-A", "keibo", "beat", "-l", "info", "--scheduler", "django", "--loglevel=info"]
     depends_on:
       - redis
       - db
