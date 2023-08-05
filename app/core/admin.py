@@ -1,7 +1,14 @@
 from django.contrib import admin
-from .models import KeiboUser, Wallet, WalletUser, Transaction
+from .models import KeiboUser, Wallet, WalletUser, Transaction, Asset
 
 admin.site.register(KeiboUser)
+
+
+@admin.register(Asset)
+class AssetAdmin(admin.ModelAdmin):
+    list_display = ['id', 'category', 'exchange_rate']
+    list_filter = ['category']
+    search_fields = ['id']
 
 
 @admin.register(Wallet)

@@ -112,3 +112,10 @@ class Transaction(models.Model):
             self.delete()
         else:
             super().save(*args, **kwargs)
+
+
+class Asset(models.Model):
+    id = models.CharField(max_length=24, primary_key=True)
+    category = models.CharField(max_length=10, choices=AssetCategory.choices)
+    # against the USD
+    exchange_rate = models.DecimalField(max_digits=24, decimal_places=12)
