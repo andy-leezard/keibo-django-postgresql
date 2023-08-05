@@ -119,3 +119,22 @@ class Asset(models.Model):
     category = models.CharField(max_length=10, choices=AssetCategory.choices)
     # against the USD
     exchange_rate = models.DecimalField(max_digits=24, decimal_places=12)
+
+
+# Example: S&P 500, crypto total market cap, interest rate, etc...
+class EconomicIndex(models.Model):
+    id = models.CharField(max_length=32, primary_key=True)
+    value = models.DecimalField(max_digits=12, decimal_places=4)
+    # Delta in percentage
+    daily_delta = models.DecimalField(
+        max_digits=12, decimal_places=4, null=True, blank=True
+    )
+    weekly_delta = models.DecimalField(
+        max_digits=12, decimal_places=4, null=True, blank=True
+    )
+    monthly_delta = models.DecimalField(
+        max_digits=12, decimal_places=4, null=True, blank=True
+    )
+    yearly_delta = models.DecimalField(
+        max_digits=12, decimal_places=4, null=True, blank=True
+    )
