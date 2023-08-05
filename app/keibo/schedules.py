@@ -1,6 +1,8 @@
 from datetime import timedelta
 
+# Currently disabled to use django-celery-beat interface instead.
+
 my_scheduled_task = {
-    'task': 'core.tasks.my_scheduled_task',
-    'schedule': timedelta(hours=1),
+    'task': 'core.tasks.update_exchange_rate',
+    'schedule': timedelta(hours=4),
 }

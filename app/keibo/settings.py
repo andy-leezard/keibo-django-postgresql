@@ -120,11 +120,33 @@ CHANNEL_LAYERS = {
 CELERY_BROKER_URL = getenv('REDIS_URL')  # "redis://localhost"
 CELERY_RESULT_BACKEND = getenv('REDIS_URL')  # "redis://localhost"
 
-CELERY_TASK_SERIALIZER = "json"
+# CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TIMEZONE = "Europe/Paris"
 CELERY_ENABLE_UTC = False
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_SOFT_TIME_LIMIT = 240
+CELERY_TASK_TIME_LIMIT = 300
+
+# Statically declared CELERY BEAT schedules
+"""
+# from .schedules import *
+CELERY_BEAT_SCHEDULE = {
+    'my_scheduled_task': my_scheduled_task,
+}
+"""
+
+# Fixed API env var
+API_PROVIDER_KEY = getenv('API_PROVIDER_KEY')
+API_PROVIDER_KEY_HEADER = getenv('API_PROVIDER_KEY_HEADER')
+API_PROVIDER_HOST_HEADER = getenv('API_PROVIDER_HOST_HEADER')
+# Dynamic API - Exchange rates
+API_EXCHANGE_RATES_HOST = getenv('API_PROVIDER_HOST')
+API_EXCHANGE_RATES = getenv('API_EXCHANGE_RATES')
+# Dynamic API - Crypto prices
+API_CRYPTO_PRICES_HOST = getenv('API_CRYPTO_PRICES_HOST')
+API_CRYPTO_PRICES = getenv('API_CRYPTO_PRICES')
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
