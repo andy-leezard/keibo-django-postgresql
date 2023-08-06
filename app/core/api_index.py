@@ -19,8 +19,8 @@ def get_fed_funds_rate():
     last_month_rate = data['observations'][-2]['value']
     last_year_rate = data['observations'][-13]['value']
 
-    monthly_delta = latest_rate - last_month_rate
-    yearly_delta = latest_rate - last_year_rate
+    monthly_delta = float(latest_rate) - float(last_month_rate)
+    yearly_delta = float(latest_rate) - float(last_year_rate)
     changed = False
     created = False
     try:
@@ -28,8 +28,8 @@ def get_fed_funds_rate():
         if asset.value != latest_rate:
             changed = True
             asset.value = latest_rate
-            asset.monthly_delta = monthly_delta
-            asset.yearly_delta = yearly_delta
+            asset.monthly_delta = monthly_delta  # type: ignore
+            asset.yearly_delta = yearly_delta  # type: ignore
     except EconomicIndex.DoesNotExist:
         created = True
         EconomicIndex.objects.create(
