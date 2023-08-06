@@ -1,7 +1,13 @@
 from django.contrib import admin
-from .models import KeiboUser, Wallet, WalletUser, Transaction, Asset
+from .models import KeiboUser, Wallet, WalletUser, Transaction, Asset, EconomicIndex
 
 admin.site.register(KeiboUser)
+
+
+@admin.register(EconomicIndex)
+class EconomicIndexAdmin(admin.ModelAdmin):
+    list_display = ['id', 'value']
+    search_fields = ['id']
 
 
 @admin.register(Asset)
