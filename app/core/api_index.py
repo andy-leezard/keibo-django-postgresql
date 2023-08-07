@@ -40,10 +40,24 @@ ECB_MAIN_REFINANCING_OPERATION_RATE = "ECBMRRFR"
 # Deposit Facility Rate (Floor) - rate at which clients pay the ECB
 ECB_MARGINAL_LENDING_FACILITY_RATE = "ECBMLFR"
 
+# Inflation
+# Euro zone
+INFLATION_EURO_ZONE = "FPCPITOTLZGEMU"
+
 
 def get_stlouisfed_observation(seriesid, interval="monthly", debug=False):
-    observation_start = get_past_date_in_yyyy_mm_dd(30 if interval == "daily" else 365)
-    frequency = "w" if interval == "weekly" else "d" if interval == "daily" else "m"
+    observation_start = get_past_date_in_yyyy_mm_dd(
+        3650 if interval == "annual" else 30 if interval == "daily" else 365
+    )
+    frequency = (
+        "a"
+        if interval == "annual"
+        else "w"
+        if interval == "weekly"
+        else "d"
+        if interval == "daily"
+        else "m"
+    )
     url = f'https://api.stlouisfed.org/fred/series/observations?series_id={seriesid}&api_key={API_FRED_KEY}&file_type=json&observation_start={observation_start}&frequency={frequency}&sort_order=desc'
     response = requests.get(url)
     data = response.json()
@@ -65,8 +79,23 @@ def get_stlouisfed_observation(seriesid, interval="monthly", debug=False):
     if latest_rate == None:
         logger.info(f"Could not fetch the current value of ({seriesid}) index!")
         return
-    yesterday, last_week, last_month, last_year = None, None, None, None
-    daily_delta, weekly_delta, monthly_delta, yearly_delta = None, None, None, None
+    yesterday, last_week, last_month, last_year, last_decade = (
+        None,
+        None,
+        None,
+        None,
+        None,
+    )
+    daily_delta, weekly_delta, monthly_delta, yearly_delta, decennial_delta = (
+        None,
+        None,
+        None,
+        None,
+        None,
+    )
+    if interval == "annual":
+        last_year = get_list_item(observations, offset + 1)
+        last_decade = get_list_item(observations, offset + 9)
     if interval == "monthly":
         last_month = get_list_item(observations, offset + 1)
         last_year = get_list_item(observations, offset + 12)
@@ -91,6 +120,9 @@ def get_stlouisfed_observation(seriesid, interval="monthly", debug=False):
     if last_year:
         if str_can_be_decimal(last_year['value']):
             yearly_delta = latest_rate - Decimal(last_year['value'])
+    if last_decade:
+        if str_can_be_decimal(last_decade['value']):
+            decennial_delta = latest_rate - Decimal(last_decade['value'])
 
     changed = False
     created = False
@@ -102,6 +134,7 @@ def get_stlouisfed_observation(seriesid, interval="monthly", debug=False):
         index.weekly_delta = weekly_delta
         index.monthly_delta = monthly_delta
         index.yearly_delta = yearly_delta
+        index.decennial_delta = decennial_delta
         index.save()
     except EconomicIndex.DoesNotExist:
         created = True
@@ -114,6 +147,8 @@ def get_stlouisfed_observation(seriesid, interval="monthly", debug=False):
             kwargs['monthly_delta'] = monthly_delta
         if yearly_delta:
             kwargs['yearly_delta'] = yearly_delta
+        if decennial_delta:
+            kwargs['decennial_delta'] = decennial_delta
         index = EconomicIndex.objects.create(**kwargs)
         index.save()
     if created:
@@ -147,3 +182,7 @@ def get_ecb_mror(debug=False):
 # Ceiling
 def get_ecb_lfr(debug=False):
     get_stlouisfed_observation(ECB_MARGINAL_LENDING_FACILITY_RATE, "weekly", debug)
+
+
+def get_inflation_euro(debug=False):
+    get_stlouisfed_observation(INFLATION_EURO_ZONE, "annual", debug)

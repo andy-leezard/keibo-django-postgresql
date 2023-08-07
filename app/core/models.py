@@ -138,3 +138,6 @@ class EconomicIndex(models.Model):
     yearly_delta = models.DecimalField(
         max_digits=12, decimal_places=4, null=True, blank=True
     )
+    decennial_delta = models.DecimalField(
+        max_digits=12, decimal_places=4, null=True, blank=True
+    )
