@@ -141,6 +141,7 @@ API_CRYPTO_PRICES_HOST = getenv('API_CRYPTO_PRICES_HOST')
 API_CRYPTO_PRICES = getenv('API_CRYPTO_PRICES')
 # Dynamic API - Indexes
 API_FRED_KEY = getenv('API_FRED_KEY')
+API_ECOS_BOK_KR_KEY = getenv('API_ECOS_BOK_KR_KEY')
 
 # Logging configuration
 LOGGING = {

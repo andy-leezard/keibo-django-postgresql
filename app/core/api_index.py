@@ -1,17 +1,28 @@
 import requests
 import logging
 from core.models import EconomicIndex
-from keibo.settings import API_FRED_KEY
+from keibo.settings import API_FRED_KEY, API_ECOS_BOK_KR_KEY
 from datetime import datetime, timedelta
 from decimal import Decimal
+from typing import List
 
 logger = logging.getLogger(__name__)
 
 
-def get_past_date_in_yyyy_mm_dd(days: int):
+def get_past_date_in_yyyy_mm_dd(days: int, without_dash=False):
     current_date = datetime.now()
     date_ago = current_date - timedelta(days)
+    if without_dash:
+        return date_ago.strftime('%Y%m%d')
     return date_ago.strftime('%Y-%m-%d')
+
+
+def get_past_date_in_yyyy_mm(days: int, without_dash=False):
+    current_date = datetime.now()
+    date_ago = current_date - timedelta(days)
+    if without_dash:
+        return date_ago.strftime('%Y%m')
+    return date_ago.strftime('%Y-%m')
 
 
 def get_list_item(list, index):
@@ -43,6 +54,26 @@ ECB_MARGINAL_LENDING_FACILITY_RATE = "ECBMLFR"
 # Inflation
 # Euro zone
 INFLATION_EURO_ZONE = "FPCPITOTLZGEMU"
+# USD USA
+INFLATION_USD = "FPCPITOTLZGUSA"
+# KRW Korea
+INFLATION_KRW = "FPCPITOTLZGKOR"
+# Yuan China
+INFLATION_YUAN = "FPCPITOTLZGCHN"
+# Yen Japan
+INFLATION_YEN = "FPCPITOTLZGJPN"
+# Ruble Russia
+INFLATION_RUBLE = "FPCPITOTLZGRUS"
+# GBP UK
+INFLATION_GBP = "FPCPITOTLZGGBR"
+# Rupiah Indonesia
+INFLATION_IDR = "FPCPITOTLZGIDN"
+# Rupee India
+INFLATION_RUPEE = "FPCPITOTLZGIND"
+# AED (United Arab Emirates Dirham)
+INFLATION_AED = "FPCPITOTLZGARE"
+# Switzerland Franc
+INFLATION_CHF = "FPCPITOTLZGCHE"
 
 
 def get_stlouisfed_observation(seriesid, interval="monthly", debug=False):
@@ -124,11 +155,9 @@ def get_stlouisfed_observation(seriesid, interval="monthly", debug=False):
         if str_can_be_decimal(last_decade['value']):
             decennial_delta = latest_rate - Decimal(last_decade['value'])
 
-    changed = False
     created = False
     try:
         index = EconomicIndex.objects.get(id=seriesid)
-        changed = True
         index.value = latest_rate
         index.daily_delta = daily_delta
         index.weekly_delta = weekly_delta
@@ -150,18 +179,65 @@ def get_stlouisfed_observation(seriesid, interval="monthly", debug=False):
         if decennial_delta:
             kwargs['decennial_delta'] = decennial_delta
         index = EconomicIndex.objects.create(**kwargs)
-        index.save()
     if created:
         logger.info(
             f"Successfully created economic index ({seriesid}) : ({latest_rate})%"
         )
-    elif changed:
+    else:
         logger.info(
             f"Successfully updated economic index ({seriesid} : {latest_rate})%"
         )
+
+
+def get_ecos_bok_kr(asset_class, debug=False):
+    year_ago = get_past_date_in_yyyy_mm(365, True)
+    today = get_past_date_in_yyyy_mm(0, True)
+    url = f'https://ecos.bok.or.kr/api/StatisticSearch/{API_ECOS_BOK_KR_KEY}/json/kr/1/12/{asset_class}/M/{year_ago}/{today}'
+    response = requests.get(url)
+    result = response.json()
+    rows: List = result['StatisticSearch']['row']
+    rows.reverse()
+    if debug:
+        for row in rows:
+            logger.info(f"{row['TIME']} : {row['DATA_VALUE']}")
+    latest_rate = get_list_item(rows, 0)
+    last_month = get_list_item(rows, 1)
+    last_year = get_list_item(rows, 11)
+    monthly_delta, yearly_delta = None, None
+    if latest_rate == None or not str_can_be_decimal(latest_rate['DATA_VALUE']):
+        logger.info(
+            f"get_ecos_bok_kr - failed to get the latest_rate for {asset_class}%"
+        )
+        return
+    latest_rate = Decimal(latest_rate['DATA_VALUE'])
+    if last_month:
+        if str_can_be_decimal(last_month['DATA_VALUE']):
+            monthly_delta = latest_rate - Decimal(last_month['DATA_VALUE'])
+    if last_year:
+        if str_can_be_decimal(last_year['DATA_VALUE']):
+            yearly_delta = latest_rate - Decimal(last_year['DATA_VALUE'])
+    created = False
+    try:
+        index = EconomicIndex.objects.get(id=asset_class)
+        index.value = latest_rate
+        index.monthly_delta = monthly_delta
+        index.yearly_delta = yearly_delta
+        index.save()
+    except EconomicIndex.DoesNotExist:
+        created = True
+        EconomicIndex.objects.create(
+            id=asset_class,
+            value=latest_rate,
+            monthly_delta=monthly_delta,
+            yearly_delta=yearly_delta,
+        )
+    if created:
+        logger.info(
+            f"Successfully created economic index ({asset_class}) : ({latest_rate})%"
+        )
     else:
         logger.info(
-            f"It looks like the index of series id ({seriesid}) hasn't changed."
+            f"Successfully updated economic index ({asset_class} : {latest_rate})%"
         )
 
 
@@ -184,5 +260,49 @@ def get_ecb_lfr(debug=False):
     get_stlouisfed_observation(ECB_MARGINAL_LENDING_FACILITY_RATE, "weekly", debug)
 
 
+def get_bok_interest_rates(debug=False):
+    get_ecos_bok_kr('722Y001', debug)
+
+
 def get_inflation_euro(debug=False):
     get_stlouisfed_observation(INFLATION_EURO_ZONE, "annual", debug)
+
+
+def get_inflation_usd(debug=False):
+    get_stlouisfed_observation(INFLATION_USD, "annual", debug)
+
+
+def get_inflation_krw(debug=False):
+    get_stlouisfed_observation(INFLATION_KRW, "annual", debug)
+
+
+def get_inflation_yuan(debug=False):
+    get_stlouisfed_observation(INFLATION_YUAN, "annual", debug)
+
+
+def get_inlfation_yen(debug=False):
+    get_stlouisfed_observation(INFLATION_YEN, "annual", debug)
+
+
+def get_inflation_ruble(debug=False):
+    get_stlouisfed_observation(INFLATION_RUBLE, "annual", debug)
+
+
+def get_inflation_gbp(debug=False):
+    get_stlouisfed_observation(INFLATION_GBP, "annual", debug)
+
+
+def get_inflation_idr(debug=False):
+    get_stlouisfed_observation(INFLATION_IDR, "annual", debug)
+
+
+def get_inflation_rupee(debug=False):
+    get_stlouisfed_observation(INFLATION_RUPEE, "annual", debug)
+
+
+def get_inflation_aed(debug=False):
+    get_stlouisfed_observation(INFLATION_AED, "annual", debug)
+
+
+def get_inflation_chf(debug=False):
+    get_stlouisfed_observation(INFLATION_CHF, "annual", debug)
