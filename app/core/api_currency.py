@@ -23,10 +23,12 @@ SUPPORTED_CURRENCIES = {
     'cny',
     'cad',
     'inr',
+    'idr',
+    'aed'
 }
 
 
-def get_exchange_rates():
+def get_exchange_rates(debug=False):
     url = API_EXCHANGE_RATES
 
     headers = {
@@ -44,6 +46,10 @@ def get_exchange_rates():
 
     data = response.json()
     rates = data.get('rates')
+
+    if debug:
+        for currency, rate in rates.items():
+            logger.info(f"{currency} to usd exchange ratio : {rate}")
 
     if not isinstance(rates, dict):
         logger.info("Unexpected data format. 'rates' should be a dictionary.")
