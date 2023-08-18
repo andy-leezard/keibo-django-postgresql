@@ -34,9 +34,9 @@ class WalletAdmin(admin.ModelAdmin):
 
 @admin.register(WalletUser)
 class WalletUserAdmin(admin.ModelAdmin):
-    list_display = ['wallet', 'user', 'role', 'granted_at']  # 'user' , 'invited_by'
+    list_display = ['user', 'wallet', 'role', 'granted_at']
     list_filter = ['role']
-    raw_id_fields = ['wallet']  # 'user', 'invited_by'
+    raw_id_fields = ['wallet']
 
 
 @admin.register(Transaction)

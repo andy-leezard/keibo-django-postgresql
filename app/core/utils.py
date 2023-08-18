@@ -1,4 +1,6 @@
 import json
+import random
+import string
 from django.urls.converters import IntConverter
 from typing import Any, Union
 
@@ -25,3 +27,9 @@ def safely_load_json(data: str, fallback: Any = None) -> Union[Any, dict, list]:
         return json.loads(data)
     except json.JSONDecodeError:
         return fallback
+
+# Create this outside the function to avoid re-creation on each function call
+LETTERS_AND_DIGITS = string.ascii_letters + string.digits
+
+def generate_random_string(length=6, prefix="", suffix=""):
+    return prefix + ''.join(random.choice(LETTERS_AND_DIGITS) for _ in range(length)) + suffix

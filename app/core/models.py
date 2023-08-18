@@ -5,6 +5,8 @@ from django.contrib.auth.models import (
     PermissionsMixin,
 )
 import decimal
+import uuid
+from .utils import generate_random_string
 
 
 class KeiboUserManager(BaseUserManager):
@@ -54,13 +56,15 @@ class AssetCategory(models.TextChoices):
     FUND = 'fund'
     OTHER = 'other'
 
-
+def get_default_wallet():
+    return generate_random_string(prefix="wallet_")
 class Wallet(models.Model):
-    asset_id = models.CharField(max_length=24)
+    id = models.UUIDField(default=uuid.uuid4, primary_key=True, unique=True, editable=False)
+    asset_id = models.CharField(max_length=24, default="usd")
     # name of the financial institution or the trademark of the personal wallet provider
-    provider = models.CharField(max_length=24)
-    name = models.CharField(max_length=200)
-    category = models.CharField(max_length=10, choices=AssetCategory.choices)
+    provider = models.CharField(max_length=24, null=True, blank=True,)
+    name = models.CharField(max_length=200, default=get_default_wallet)
+    category = models.CharField(max_length=10, choices=AssetCategory.choices, default=AssetCategory.CASH)
     balance = models.DecimalField(
         max_digits=19, decimal_places=8, default=decimal.Decimal('0.00')
     )
@@ -78,18 +82,30 @@ ROLES = [
 ]
 
 
-class WalletUser(models.Model):
-    user = models.ForeignKey(KeiboUser, on_delete=models.CASCADE)
-    wallet = models.ForeignKey(
-        Wallet, on_delete=models.CASCADE, related_name='wallet_users'
+# Used for WalletUser and Invitations
+class AbstractWalletReference(models.Model):
+    user = models.ForeignKey(
+        KeiboUser, on_delete=models.CASCADE, related_name='%(class)s_users'
     )
-    # user = models.ForeignKey(OAuthUser, on_delete=models.CASCADE)
+    wallet = models.ForeignKey(
+        Wallet, on_delete=models.CASCADE, related_name='%(class)s_wallets'
+    )
     role = models.IntegerField(choices=ROLES)
+
+    class Meta:
+        abstract = True
+
+
+class WalletUser(AbstractWalletReference):
     granted_at = models.DateTimeField(auto_now_add=True)
-    # invited_by = models.ForeignKey(OAuthUser, on_delete=models.SET_NULL, null=True, related_name='invitations')
+
+
+class Invitation(AbstractWalletReference):
+    created_at = models.DateTimeField(auto_now_add=True)
 
 
 class Transaction(models.Model):
+    id = models.UUIDField(default=uuid.uuid4, primary_key=True, unique=True, editable=False)
     beneficiary = models.ForeignKey(
         Wallet,
         on_delete=models.SET_NULL,

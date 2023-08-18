@@ -30,35 +30,4 @@ class Migration(migrations.Migration):
                 'abstract': False,
             },
         ),
-        migrations.CreateModel(
-            name='Wallet',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('asset_id', models.CharField(max_length=24)),
-                ('name', models.CharField(max_length=200)),
-                ('category', models.CharField(choices=[('cash', 'Cash'), ('equity', 'Equity'), ('crypto', 'Crypto'), ('fund', 'Fund'), ('other', 'Other')], max_length=10)),
-                ('balance', models.DecimalField(decimal_places=8, default=Decimal('0.00'), max_digits=19)),
-                ('wallet_type', models.CharField(choices=[('PUBLIC', 'Public'), ('PRIVATE', 'Private')], max_length=7)),
-            ],
-        ),
-        migrations.CreateModel(
-            name='WalletUser',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('role', models.IntegerField(choices=[(1, 'Viewer'), (2, 'Editor'), (3, 'Manager'), (4, 'Admin')])),
-                ('granted_at', models.DateTimeField(auto_now_add=True)),
-                ('wallet', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='wallet_users', to='core.wallet')),
-            ],
-        ),
-        migrations.CreateModel(
-            name='Transaction',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('amount', models.DecimalField(decimal_places=8, max_digits=19)),
-                ('date', models.DateTimeField(auto_now_add=True)),
-                ('type', models.CharField(choices=[('INCOME', 'Income'), ('EXPENSE', 'Expense')], max_length=7)),
-                ('description', models.CharField(blank=True, max_length=200)),
-                ('wallet', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='transactions', to='core.wallet')),
-            ],
-        ),
     ]
