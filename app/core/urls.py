@@ -1,5 +1,6 @@
 from django.urls import path, re_path, register_converter
-from .wallet_api import get_wallets
+from core.api.users import search_users
+from .wallet_api import get_wallets, WalletCreateView, WalletUpdateView
 from .utils import NegativeIntConverter
 from .healthcheck import ping
 from .views import (
@@ -32,6 +33,9 @@ urlpatterns = [
     #    get_wallets,
     #    name="get_wallets",
     # ),
+    path('search_users/<str:keyword>/', search_users, name="search_users"),
+    path('wallet/', WalletCreateView.as_view(), name='wallet-list-create'),
+    path('wallet/<int:pk>/', WalletUpdateView.as_view(), name='wallet-update'),
     path('get_wallets/', get_wallets, name="get_wallets_no_params"),
     path('get_wallets/<str:role>/', get_wallets, name="get_wallets_role"),
     path(

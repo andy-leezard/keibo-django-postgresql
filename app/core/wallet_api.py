@@ -1,8 +1,10 @@
+from rest_framework import status, generics
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from .serializers import WalletSerializer
-from .models import WalletUser
+from .models import Wallet, WalletUser
+import time
 
 
 @api_view(['GET'])
@@ -40,3 +42,24 @@ def get_wallets(request, role=None, range=None):
         serialized_wallets.append(wallet_data)
 
     return Response(serialized_wallets)
+
+
+class WalletCreateView(generics.ListCreateAPIView):
+    queryset = Wallet.objects.all()
+    serializer_class = WalletSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        wallet = serializer.save()
+        WalletUser.objects.create(
+            user=self.request.user,
+            wallet=wallet,
+            role=4,
+            granted_at=int(time.time() * 1000),
+        )
+
+
+class WalletUpdateView(generics.UpdateAPIView):
+    queryset = Wallet.objects.all()
+    serializer_class = WalletSerializer
+    permission_classes = [IsAuthenticated]
