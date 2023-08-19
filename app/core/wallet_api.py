@@ -1,9 +1,11 @@
-from rest_framework import status, generics
+from rest_framework import generics
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from .serializers import WalletSerializer
 from .models import Wallet, WalletUser
+from django.db.models import Q
 import time
 
 
@@ -59,7 +61,33 @@ class WalletCreateView(generics.ListCreateAPIView):
         )
 
 
-class WalletUpdateView(generics.UpdateAPIView):
+class WalletUpdateView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Wallet.objects.all()
     serializer_class = WalletSerializer
     permission_classes = [IsAuthenticated]
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        # Check if the authenticated user is related to this wallet through a WalletUser
+        user_has_access = WalletUser.objects.filter(user=request.user, wallet=instance).exists()
+
+        # If the wallet is not public and the user doesn't have access via WalletUser, raise PermissionDenied
+        if not instance.is_public and not user_has_access:
+            raise PermissionDenied("You do not have permission to access this wallet.")
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+    
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        wallet_user = WalletUser.objects.filter(user=request.user, wallet=instance).first()
+        if not wallet_user or wallet_user.role < 3:
+            raise PermissionDenied("You do not have permission to update this wallet.")
+        return super().update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        wallet_user = WalletUser.objects.filter(user=request.user, wallet=instance).first()
+        if not wallet_user or wallet_user.role != 4:
+            raise PermissionDenied("You do not have permission to delete this wallet.")
+        return super().destroy(request, *args, **kwargs)
+

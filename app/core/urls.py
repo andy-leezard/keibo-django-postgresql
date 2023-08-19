@@ -35,7 +35,7 @@ urlpatterns = [
     # ),
     path('search_users/<str:keyword>/', search_users, name="search_users"),
     path('wallet/', WalletCreateView.as_view(), name='wallet-list-create'),
-    path('wallet/<int:pk>/', WalletUpdateView.as_view(), name='wallet-update'),
+    path('wallet/<uuid:pk>/', WalletUpdateView.as_view(), name='wallet-rud'),
     path('get_wallets/', get_wallets, name="get_wallets_no_params"),
     path('get_wallets/<str:role>/', get_wallets, name="get_wallets_role"),
     path(
