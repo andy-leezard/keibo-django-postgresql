@@ -12,6 +12,7 @@ class WalletSerializer(serializers.ModelSerializer):
             'asset_id',
             'balance',
             'name',
+            'icon',
             'is_public',
         ]
 

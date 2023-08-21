@@ -1,9 +1,11 @@
 from django.db import models
+from django.utils import timezone
 from django.contrib.auth.models import (
     BaseUserManager,
     AbstractBaseUser,
     PermissionsMixin,
 )
+from decimal import Decimal
 import decimal
 import uuid
 from .utils import generate_random_string
@@ -32,9 +34,11 @@ class KeiboUserManager(BaseUserManager):
 
 
 class KeiboUser(AbstractBaseUser, PermissionsMixin):
-    first_name = models.CharField(max_length=255)
-    last_name = models.CharField(max_length=255)
     email = models.EmailField(max_length=255, unique=True)
+    first_name = models.CharField(max_length=255)
+    last_name = models.CharField(max_length=255, null=True, blank=True)
+    avatar = models.URLField(blank=True, null=True)
+    registered_at = models.DateTimeField(default=timezone.now)
 
     is_active = models.BooleanField(default=True)  # Djoser needs it false either way.
     is_staff = models.BooleanField(default=False)
@@ -42,7 +46,7 @@ class KeiboUser(AbstractBaseUser, PermissionsMixin):
 
     objects = KeiboUserManager()
 
-    USERNAME_FIELD = 'email'
+    USERNAME_FIELD = 'email'  # is intrinsically required
     REQUIRED_FIELDS = ['first_name', 'last_name']
 
     def __str__(self):
@@ -56,18 +60,30 @@ class AssetCategory(models.TextChoices):
     FUND = 'fund'
     OTHER = 'other'
 
-def get_default_wallet():
+
+def default_wallet_name():
     return generate_random_string(prefix="wallet_")
+
+
 class Wallet(models.Model):
-    id = models.UUIDField(default=uuid.uuid4, primary_key=True, unique=True, editable=False)
+    id = models.UUIDField(
+        default=uuid.uuid4, primary_key=True, unique=True, editable=False
+    )
     asset_id = models.CharField(max_length=24, default="usd")
     # name of the financial institution or the trademark of the personal wallet provider
-    provider = models.CharField(max_length=24, null=True, blank=True,)
-    name = models.CharField(max_length=200, default=get_default_wallet)
-    category = models.CharField(max_length=10, choices=AssetCategory.choices, default=AssetCategory.CASH)
+    provider = models.CharField(
+        max_length=24,
+        null=True,
+        blank=True,
+    )
+    name = models.CharField(max_length=200, default=default_wallet_name)
+    category = models.CharField(
+        max_length=10, choices=AssetCategory.choices, default=AssetCategory.CASH
+    )
     balance = models.DecimalField(
         max_digits=19, decimal_places=8, default=decimal.Decimal('0.00')
     )
+    icon = models.CharField(max_length=255, blank=True, null=True)  # img icon source
     is_public = models.BooleanField(default=False)
 
     def __str__(self):
@@ -105,33 +121,40 @@ class Invitation(AbstractWalletReference):
 
 
 class Transaction(models.Model):
-    id = models.UUIDField(default=uuid.uuid4, primary_key=True, unique=True, editable=False)
-    beneficiary = models.ForeignKey(
+    id = models.UUIDField(
+        default=uuid.uuid4, primary_key=True, unique=True, editable=False
+    )
+    category = models.CharField(max_length=32)  # tax, gas, etc...
+    recipient = models.ForeignKey(
         Wallet,
         on_delete=models.SET_NULL,
-        related_name='beneficiary',
+        related_name='recipient',
         null=True,
         blank=True,
     )
-    donor = models.ForeignKey(
-        Wallet, on_delete=models.SET_NULL, related_name='donor', null=True, blank=True
+    sender = models.ForeignKey(
+        Wallet, on_delete=models.SET_NULL, related_name='sender', null=True, blank=True
     )
-    confirmed_by_beneficiary = models.BooleanField(default=False)
-    confirmed_by_donor = models.BooleanField(default=False)
-    amount = models.DecimalField(max_digits=19, decimal_places=8)
-    date = models.DateTimeField(auto_now_add=True)
+    confirmed_by_recipient = models.BooleanField(default=False)
+    confirmed_by_sender = models.BooleanField(default=False)
+    cross_amount = models.DecimalField(max_digits=19, decimal_places=8)
+    net_amount = models.DecimalField(max_digits=19, decimal_places=8)
+    transaction_fee = models.DecimalField(
+        max_digits=19, decimal_places=8, default=Decimal(0)
+    )
+    date = models.DateTimeField(auto_now_add=True)  # executed_at
     description = models.CharField(max_length=200, blank=True)
 
     # added_by = models.ForeignKey(OAuthUser, on_delete=models.CASCADE)
     def save(self, *args, **kwargs):
-        if self.beneficiary is None and self.donor is None:
+        if self.recipient is None and self.sender is None:
             self.delete()
         else:
             super().save(*args, **kwargs)
 
 
 class Asset(models.Model):
-    id = models.CharField(max_length=24, primary_key=True)
+    id = models.CharField(max_length=24, unique=True, primary_key=True)
     category = models.CharField(max_length=10, choices=AssetCategory.choices)
     # against the USD
     exchange_rate = models.DecimalField(max_digits=24, decimal_places=12)
