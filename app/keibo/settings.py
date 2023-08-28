@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 from os import getenv, path
 from pathlib import Path
 from django.core.management.utils import get_random_secret_key
+from datetime import timedelta
 import dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -237,6 +238,55 @@ REST_FRAMEWORK = {
     ],
 }
 
+# == == == == == ==  #
+#  JWT Auth Related  #
+# == == == == == ==  #
+
+AUTH_COOKIE = 'access'
+ONE_DAY = 60 * 60 * 24
+ACCESS_DURATION_IN_DAYS = int(getenv('ACCESS_DURATION_IN_DAYS'))
+REFRESH_DURATION_IN_DAYS = int(getenv('REFRESH_DURATION_IN_DAYS'))
+AUTH_ACCESS_COOKIE_MAX_AGE = ACCESS_DURATION_IN_DAYS * ONE_DAY
+AUTH_REFRESH_COOKIE_MAX_AGE = REFRESH_DURATION_IN_DAYS * ONE_DAY
+AUTH_COOKIE_SECURE = getenv('AUTH_COOKIE_SECURE', 'True') == 'True'
+AUTH_COOKIE_HTTP_ONLY = True
+AUTH_COOKIE_PATH = '/'
+AUTH_COOKIE_SAMESITE = 'None'
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=ACCESS_DURATION_IN_DAYS),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=REFRESH_DURATION_IN_DAYS),
+    "ROTATE_REFRESH_TOKENS": False,
+    "BLACKLIST_AFTER_ROTATION": False,
+    "UPDATE_LAST_LOGIN": False,
+    "ALGORITHM": "HS256",
+    "SIGNING_KEY": SECRET_KEY,
+    "VERIFYING_KEY": "",
+    "AUDIENCE": None,
+    "ISSUER": None,
+    "JSON_ENCODER": None,
+    "JWK_URL": None,
+    "LEEWAY": 0,
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
+    "USER_ID_FIELD": "id",
+    "USER_ID_CLAIM": "user_id",
+    "USER_AUTHENTICATION_RULE": "rest_framework_simplejwt.authentication.default_user_authentication_rule",
+    "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
+    "TOKEN_TYPE_CLAIM": "token_type",
+    "TOKEN_USER_CLASS": "rest_framework_simplejwt.models.TokenUser",
+    "JTI_CLAIM": "jti",
+    "SLIDING_TOKEN_REFRESH_EXP_CLAIM": "refresh_exp",
+    "SLIDING_TOKEN_LIFETIME": timedelta(days=ACCESS_DURATION_IN_DAYS),
+    "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=REFRESH_DURATION_IN_DAYS),
+    "TOKEN_OBTAIN_SERIALIZER": "rest_framework_simplejwt.serializers.TokenObtainPairSerializer",
+    "TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSerializer",
+    "TOKEN_VERIFY_SERIALIZER": "rest_framework_simplejwt.serializers.TokenVerifySerializer",
+    "TOKEN_BLACKLIST_SERIALIZER": "rest_framework_simplejwt.serializers.TokenBlacklistSerializer",
+    "SLIDING_TOKEN_OBTAIN_SERIALIZER": "rest_framework_simplejwt.serializers.TokenObtainSlidingSerializer",
+    "SLIDING_TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer",
+}
+
 # == == == == == == == #
 #  Extended by Djoser  #
 # == == == == == == == #
@@ -250,16 +300,6 @@ DJOSER = {
     'TOKEN_MODEL': None,
     'SOCIAL_AUTH_ALLOWED_REDIRECT_URIS': getenv('REDIRECT_URLS', '').split(','),
 }
-
-AUTH_COOKIE = 'access'
-ONE_DAY = 60 * 60 * 24
-ONE_WEEK = ONE_DAY * 7
-AUTH_ACCESS_COOKIE_MAX_AGE = ONE_DAY
-AUTH_REFRESH_COOKIE_MAX_AGE = ONE_WEEK * 2
-AUTH_COOKIE_SECURE = getenv('AUTH_COOKIE_SECURE', 'True') == 'True'
-AUTH_COOKIE_HTTP_ONLY = True
-AUTH_COOKIE_PATH = '/'
-AUTH_COOKIE_SAMESITE = 'None'
 
 # == == == == == == == == == #
 #  Extended for CORSHEADERS  #
