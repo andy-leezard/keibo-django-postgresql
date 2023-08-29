@@ -137,7 +137,7 @@ class Transaction(models.Model):
     )
     confirmed_by_recipient = models.BooleanField(default=False)
     confirmed_by_sender = models.BooleanField(default=False)
-    cross_amount = models.DecimalField(max_digits=19, decimal_places=8)
+    gross_amount = models.DecimalField(max_digits=19, decimal_places=8)
     net_amount = models.DecimalField(max_digits=19, decimal_places=8)
     transaction_fee = models.DecimalField(
         max_digits=19, decimal_places=8, default=Decimal(0)
