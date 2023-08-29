@@ -150,6 +150,8 @@ class Transaction(models.Model):
         if self.recipient is None and self.sender is None:
             self.delete()
         else:
+            if self.net_amount + self.transaction_fee != self.gross_amount:
+                self.transaction_fee = self.gross_amount - self.net_amount
             super().save(*args, **kwargs)
 
 
