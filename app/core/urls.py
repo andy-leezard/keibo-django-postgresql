@@ -1,6 +1,6 @@
 from django.urls import path, re_path, register_converter
 from core.api.users import search_users
-from core.transaction_api import TransactionListView, get_transactions
+from core.transaction_api import TransactionCreateView, TransactionUpdateView, get_transactions
 from .wallet_api import get_wallets, WalletCreateView, WalletUpdateView
 from .utils import NegativeIntConverter
 from .healthcheck import ping
@@ -37,7 +37,8 @@ urlpatterns = [
     path(
         'get_transactions/<str:wallet_id>/', get_transactions, name="get_transactions"
     ),
-    path('transaction/', TransactionListView.as_view(), name='transaction-list-create'),
+    path('transaction/', TransactionCreateView.as_view(), name='transaction-list-create'),
+    path('transaction/<uuid:pk>/', TransactionUpdateView.as_view(), name='transaction-rud'),
     path('search_users/<str:keyword>/', search_users, name="search_users"),
     path('wallet/', WalletCreateView.as_view(), name='wallet-list-create'),
     path('wallet/<uuid:pk>/', WalletUpdateView.as_view(), name='wallet-rud'),

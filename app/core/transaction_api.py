@@ -30,7 +30,7 @@ def get_transactions(request, wallet_id):
     return Response(serialized_transactions)
 
 
-class TransactionListView(generics.ListCreateAPIView):
+class TransactionCreateView(generics.ListCreateAPIView):
     queryset = Transaction.objects.all()
     serializer_class = TransactionSerializer
     permission_classes = [IsAuthenticated]
@@ -59,3 +59,11 @@ class TransactionListView(generics.ListCreateAPIView):
                     pass
                 except ObjectDoesNotExist:
                     pass
+
+class TransactionUpdateView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Transaction.objects.all()
+    serializer_class = TransactionSerializer
+    permission_classes = [IsAuthenticated]
+
+
+
