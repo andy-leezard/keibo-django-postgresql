@@ -83,7 +83,7 @@ class TransactionUpdateView(generics.RetrieveUpdateDestroyAPIView):
             else:
                 instance.recipient.balance += instance.net_amount
                 instance.recipient.save()
-                new_balance = instance.sender.balance
+                new_balance = instance.recipient.balance
 
         if 'confirmed_by_sender' in request.data and instance.sender:
             if request.data['confirmed_by_sender']:
