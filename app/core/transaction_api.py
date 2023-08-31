@@ -77,23 +77,23 @@ class TransactionUpdateView(generics.RetrieveUpdateDestroyAPIView):
         # Before saving, check if confirmed_by_recipient or confirmed_by_sender is updated
         if 'confirmed_by_recipient' in request.data and instance.recipient:
             if request.data['confirmed_by_recipient']:
-                instance.recipient.balance -= instance.net_amount
+                new_balance = instance.recipient.balance + instance.net_amount
+                instance.recipient.balance = new_balance
                 instance.recipient.save()
-                new_balance = instance.recipient.balance
             else:
-                instance.recipient.balance += instance.net_amount
+                new_balance = instance.recipient.balance - instance.net_amount
+                instance.recipient.balance = new_balance
                 instance.recipient.save()
-                new_balance = instance.recipient.balance
 
         if 'confirmed_by_sender' in request.data and instance.sender:
             if request.data['confirmed_by_sender']:
-                instance.sender.balance += instance.net_amount
+                new_balance = instance.sender.balance - instance.net_amount
+                instance.sender.balance = new_balance
                 instance.sender.save()
-                new_balance = instance.sender.balance
             else:
-                instance.sender.balance -= instance.net_amount
+                new_balance = instance.sender.balance + instance.net_amount
+                instance.sender.balance = new_balance
                 instance.sender.save()
-                new_balance = instance.sender.balance
 
         self.perform_update(serializer)
 
