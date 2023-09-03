@@ -8,8 +8,6 @@ class AssetSerializer(serializers.ModelSerializer):
         model = Asset
         fields = [
             'id',
-            'symbol',
-            'icon',
             'category',
             'exchange_rate',
         ]
