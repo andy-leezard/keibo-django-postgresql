@@ -12,15 +12,28 @@ from keibo.settings import (
 logger = logging.getLogger(__name__)
 
 SUPPORTED_CRYPTOS = {
-    'bitcoin',
-    'ethereum',
-    'bitcoin-cash',
-    'binancecoin',
-    'ripple',
-    'cardano',
-    'solana',
-    'tron',
-    'dogecoin',
+    "bitcoin",
+    "bitcoin-cash",
+    "binancecoin",
+    "cardano",
+    "dogecoin",
+    "ethereum",
+    "ripple",
+    "solana",
+    "tron",
+    "tether",
+    "usd-coin",
+    "matic-network",
+    "polkadot",
+    "litecoin",
+    "binance-usd",
+    "avalanche-2",
+    "uniswap",
+    "chainlink",
+    "monero",
+    "ethereum-classic",
+    "stellar",
+    "aave",
 }
 
 
