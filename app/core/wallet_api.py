@@ -3,7 +3,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
-from .serializers import WalletSerializer
+from .serializers import AssetSerializer, WalletSerializer
 from .models import Wallet, WalletUser
 import time
 
@@ -38,10 +38,13 @@ def get_wallets(request, role=None, range=None):
     # Attach the role property from the corresponding WalletUser model
     serialized_wallets = []
     for wallet_user in wallet_users_query:
-        wallet_data = WalletSerializer(wallet_user.wallet).data
+        wallet = wallet_user.wallet
+        asset = wallet.asset
+        wallet_data = WalletSerializer(wallet).data
         wallet_data['role'] = wallet_user.role
+        wallet_data['category'] = asset.category
+        wallet_data['val_usd'] = float(wallet.balance / asset.exchange_rate)
         serialized_wallets.append(wallet_data)
-
     return Response(serialized_wallets)
 
 
