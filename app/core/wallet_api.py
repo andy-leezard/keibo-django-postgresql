@@ -66,7 +66,7 @@ class WalletUpdateView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
 
     def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
+        instance: Wallet = self.get_object()
         # Check if the authenticated user is related to this wallet through a WalletUser
         wallet_user = WalletUser.objects.filter(
             user=request.user, wallet=instance
@@ -81,6 +81,8 @@ class WalletUpdateView(generics.RetrieveUpdateDestroyAPIView):
             data['role'] = wallet_user.role
         else:
             data['role'] = 0
+        data['category'] = instance.asset.category
+        data['val_usd'] = float(instance.balance / instance.asset.exchange_rate)
         return Response(data)
 
     def update(self, request, *args, **kwargs):

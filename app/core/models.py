@@ -6,7 +6,6 @@ from django.contrib.auth.models import (
     PermissionsMixin,
 )
 from decimal import Decimal
-import decimal
 import uuid
 from .utils import generate_random_string
 
@@ -61,6 +60,16 @@ class AssetCategory(models.TextChoices):
     OTHER = 'other'
 
 
+class Asset(models.Model):
+    id = models.CharField(max_length=32, unique=True, primary_key=True)
+    # asset category
+    category = models.CharField(
+        max_length=10, choices=AssetCategory.choices, default=AssetCategory.CASH
+    )
+    # against the USD
+    exchange_rate = models.DecimalField(max_digits=24, decimal_places=12)
+
+
 def default_wallet_name():
     return generate_random_string(prefix="wallet_")
 
@@ -69,21 +78,17 @@ class Wallet(models.Model):
     id = models.UUIDField(
         default=uuid.uuid4, primary_key=True, unique=True, editable=False
     )
-    asset_id = models.CharField(max_length=24, default="usd")
+    asset = models.ForeignKey(Asset, on_delete=models.CASCADE)
     # name of the financial institution or the trademark of the personal wallet provider
     provider = models.CharField(
-        max_length=24,
-        null=True,
-        blank=True,
+        max_length=48,
+        default="",
     )
+    # custom name of the wallet
     name = models.CharField(max_length=200, default=default_wallet_name)
-    category = models.CharField(
-        max_length=10, choices=AssetCategory.choices, default=AssetCategory.CASH
-    )
     balance = models.DecimalField(
-        max_digits=19, decimal_places=8, default=decimal.Decimal('0.00')
+        max_digits=19, decimal_places=8, default=Decimal('0.00')
     )
-    icon = models.CharField(max_length=255, blank=True, null=True)  # img icon source
     is_public = models.BooleanField(default=False)
 
     def __str__(self):
@@ -153,13 +158,6 @@ class Transaction(models.Model):
             if self.net_amount + self.transaction_fee != self.gross_amount:
                 self.transaction_fee = self.gross_amount - self.net_amount
             super().save(*args, **kwargs)
-
-
-class Asset(models.Model):
-    id = models.CharField(max_length=24, unique=True, primary_key=True)
-    category = models.CharField(max_length=10, choices=AssetCategory.choices)
-    # against the USD
-    exchange_rate = models.DecimalField(max_digits=24, decimal_places=12)
 
 
 # Example: S&P 500, crypto total market cap, interest rate, etc...

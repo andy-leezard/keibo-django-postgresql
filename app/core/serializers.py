@@ -1,20 +1,39 @@
 from rest_framework import serializers
-from .models import KeiboUser, WalletUser, Wallet, Transaction
+from .models import KeiboUser, WalletUser, Wallet, Transaction, Asset
+from decimal import Decimal
+
+
+class AssetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Asset
+        fields = [
+            'id',
+            'symbol',
+            'icon',
+            'category',
+            'exchange_rate',
+        ]
+
+
+class BalanceField(serializers.Field):
+    def to_representation(self, value):
+        return float(value)
+
+    def to_internal_value(self, data):
+        return Decimal(data)
 
 
 class WalletSerializer(serializers.ModelSerializer):
-    balance = serializers.SerializerMethodField()
+    balance = BalanceField()
 
     class Meta:
         model = Wallet
         fields = [
             'id',
+            'asset',
             'provider',
-            'category',
-            'asset_id',
             'balance',
             'name',
-            'icon',
             'is_public',
         ]
 

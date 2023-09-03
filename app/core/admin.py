@@ -1,5 +1,12 @@
 from django.contrib import admin
-from .models import KeiboUser, Wallet, WalletUser, Transaction, Asset, EconomicIndex
+from .models import (
+    KeiboUser,
+    Wallet,
+    WalletUser,
+    Transaction,
+    Asset,
+    EconomicIndex,
+)
 
 admin.site.register(KeiboUser)
 
@@ -22,13 +29,12 @@ class WalletAdmin(admin.ModelAdmin):
     list_display = [
         'id',
         'provider',
-        'category',
-        'asset_id',
+        'asset',
         'balance',
         'name',
         'is_public',
     ]
-    list_filter = ['category', 'is_public']
+    list_filter = ['asset', 'is_public']
     search_fields = ['name']
 
 
