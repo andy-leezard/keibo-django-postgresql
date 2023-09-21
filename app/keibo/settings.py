@@ -14,6 +14,7 @@ from os import getenv, path
 from pathlib import Path
 from django.core.management.utils import get_random_secret_key
 from datetime import timedelta
+from .utils import generate_urls
 import dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -298,7 +299,9 @@ DJOSER = {
     'USER_CREATE_PASSWORD_RETYPE': True,
     'PASSWORD_RESET_CONFIRM_RETYPE': True,
     'TOKEN_MODEL': None,
-    'SOCIAL_AUTH_ALLOWED_REDIRECT_URIS': getenv('REDIRECT_URLS', '').split(','),
+    'SOCIAL_AUTH_ALLOWED_REDIRECT_URIS': generate_urls(
+        DEBUG, getenv('REDIRECT_BASE_URL'), ['google-oauth2', 'github']
+    ),
 }
 
 # == == == == == == == == == #
