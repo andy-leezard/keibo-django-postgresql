@@ -142,6 +142,7 @@ Warning: *Make sure to click on the `Include as pending below` button before sav
 By default, a HTTP listner will be created.
 Add a HTTPS listener and choose the `target group` previously created.
 Health check path: `/api/hello_world`
+AWS Interface: (EC2/Target groups/keibo-instance)
 
 14. Create a Distribution on `CloudFront` that will link your `ELB` and your domain. Here you have the option to auto-convert any http request to https. The distribution is only active if it is connected to a url on `Hosted Zones` in `Route53` which is the AWS interface.
 
@@ -155,6 +156,11 @@ docker-compose -f docker-compose-production.yml build app
 docker-compose -f docker-compose-production.yml up --no-deps -d app
 ```
 
+## Troubleshooting 502 Bad Gateaway nginx error
+```bash
+docker-compose -f docker-compose-production.yml restart <proxy-container-name>
+```
+
 ## Troubleshooting 'No space left on device' while building a new docker image
 Check the disk status using this command:
 ```bash
@@ -163,7 +169,7 @@ df -h
 
 If really there is no space, you might have to prune old docker images.
 ```bash
-docker systme prune
+docker images prune
 ```
 
 *You can also prune the volumens. Do this if you're not storing files locally (which you shouldn't be anyway, they should be in something like AWS S3) -Nitin Nain from StackOverflow-*
@@ -229,3 +235,46 @@ Assuming Superuser is already created
 ```
 http://127.0.0.1:8000/admin
 ```
+
+## Edit .env file
+DJANGO_SECRET_KEY='django-insecure-redacted'
+DJANGO_ALLOWED_HOSTS='127.0.0.1,localhost'
+CORS_ALLOWED_ORIGINS='http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173'
+DEBUG='boolean'
+DEVELOPMENT_MODE='boolean'
+
+POSTGRES_DB='db-name-redacted'
+POSTGRES_USER='admin-name-redacted'
+POSTGRES_PASSWORD='db-pw-redacted'
+
+GOOGLE_AUTH_KEY='redacted'
+GITHUB_AUTH_KEY='redacted'
+
+GOOGLE_AUTH_SECRET_KEY='redacted'
+GITHUB_AUTH_SECRET_KEY='redacted'
+
+DOMAIN='localhost:3000'
+AUTH_COOKIE_SECURE='boolean'
+ACCESS_DURATION_IN_DAYS='numeric-value'
+REFRESH_DURATION_IN_DAYS='numeric-value'
+
+AWS_SES_ACCESS_KEY_ID='redacted'
+AWS_SES_SECRET_ACCESS_KEY='redacted'
+AWS_SES_REGION_NAME='us-region-redacted'
+AWS_SES_FROM_EMAIL='example@example.com'
+
+REDIRECT_BASE_URL='base_url'
+REDIS_URL='redis_url'
+
+API_PROVIDER_KEY_HEADER='redacted'
+API_PROVIDER_HOST_HEADER='redacted'
+API_PROVIDER_KEY='redacted'
+
+API_EXCHANGE_RATES_HOST='redacted'
+API_EXCHANGE_RATES='redacted'
+
+API_CRYPTO_PRICES_HOST='redacted'
+API_CRYPTO_PRICES='redacted'
+
+API_FRED_KEY='redacted'
+API_ECOS_BOK_KR_KEY='redacted'
