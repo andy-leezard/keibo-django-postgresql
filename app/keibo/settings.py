@@ -16,6 +16,7 @@ from django.core.management.utils import get_random_secret_key
 from datetime import timedelta
 from .utils import generate_urls
 import dotenv
+# from corsheaders.defaults import default_headers
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -308,12 +309,22 @@ DJOSER = {
 #  Extended for CORSHEADERS  #
 # == == == == == == == == == #
 
-CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOW_METHODS = ('GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS')
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = getenv(
     'CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000'
 ).split(',')
+# CORS_ALLOW_HEADERS = list(default_headers) + ['Set-Cookie']
+
+# == == == == == == == == == #
+#    CROSS SITE SETTINGS     #
+# == == == == == == == == == #
+
+CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_SAMESITE = 'None'
 
 # == == == == == == == == == #
 #   Extended for Auth User   #
