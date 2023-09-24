@@ -278,3 +278,7 @@ API_CRYPTO_PRICES='redacted'
 
 API_FRED_KEY='redacted'
 API_ECOS_BOK_KR_KEY='redacted'
+
+## Auth docs
+
+https://djoser.readthedocs.io/en/latest/base_endpoints.html
