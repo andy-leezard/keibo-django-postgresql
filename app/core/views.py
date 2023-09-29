@@ -42,6 +42,11 @@ class CustomProviderAuthView(ProviderAuthView):
                 samesite=settings.AUTH_COOKIE_SAMESITE,
             )
 
+        response.data = {
+            'access_max_age': settings.AUTH_ACCESS_COOKIE_MAX_AGE,
+            'refresh_max_age': settings.AUTH_REFRESH_COOKIE_MAX_AGE,
+        }
+
         return response
 
 
@@ -72,6 +77,11 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                 samesite=settings.AUTH_COOKIE_SAMESITE,
             )
 
+        response.data = {
+            'access_max_age': settings.AUTH_ACCESS_COOKIE_MAX_AGE,
+            'refresh_max_age': settings.AUTH_REFRESH_COOKIE_MAX_AGE,
+        }
+
         return response
 
 
@@ -97,6 +107,10 @@ class CustomTokenRefreshView(TokenRefreshView):
                 samesite=settings.AUTH_COOKIE_SAMESITE,
             )
 
+        response.data = {
+            'access_max_age': settings.AUTH_ACCESS_COOKIE_MAX_AGE,
+        }
+
         return response
 
 
@@ -105,7 +119,8 @@ class CustomTokenVerifyView(TokenVerifyView):
         access_token = request.COOKIES.get('access')
 
         if access_token:
-            request.data['token'] = access_token
+            # request.data['token'] = access_token
+            request.data['authenticated'] = True
 
         return super().post(request, *args, **kwargs)
 
@@ -115,5 +130,8 @@ class LogoutView(APIView):
         response = Response(status=status.HTTP_204_NO_CONTENT)
         response.delete_cookie('access')
         response.delete_cookie('refresh')
+
+        # Cleanup OAuth (Optional)
+        response.delete_cookie('sessionid')
 
         return response
