@@ -153,7 +153,7 @@ AWS Interface: (EC2/Target groups/keibo-instance)
 ```bash
 git pull origin
 docker-compose -f docker-compose-production.yml build app
-docker-compose -f docker-compose-production.yml up --no-deps -d app
+docker-compose -f docker-compose-production.yml up -d app
 ```
 
 ## Troubleshooting 502 Bad Gateaway nginx error
