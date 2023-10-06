@@ -3,7 +3,7 @@ version: '3.8'
 services:
   db:
     image: postgres:13-alpine
-    restart: always
+    restart: unless-stopped
     volumes:
       - postgres-data:/var/lib/postgresql/data
     environment:
@@ -13,7 +13,7 @@ services:
 
   redis:
     image: redis:latest
-    restart: always
+    restart: unless-stopped
     ports:
       - '6379:6379'
     volumes:
@@ -22,7 +22,7 @@ services:
   app:
     build:
       context: .
-    restart: always
+    restart: unless-stopped
     command: >
       sh -c "python manage.py wait_for_db &&
              python manage.py migrate &&
