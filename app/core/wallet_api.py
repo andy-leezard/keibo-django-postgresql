@@ -43,7 +43,7 @@ def get_wallets(request, role=None, range=None):
         wallet_data = WalletSerializer(wallet).data
         wallet_data['role'] = wallet_user.role
         wallet_data['category'] = asset.category
-        wallet_data['val_usd'] = float(wallet.balance / asset.exchange_rate)
+        wallet_data['val_usd'] = float(wallet.balance * asset.exchange_rate)
         serialized_wallets.append(wallet_data)
     return Response(serialized_wallets)
 
@@ -85,7 +85,7 @@ class WalletUpdateView(generics.RetrieveUpdateDestroyAPIView):
         else:
             data['role'] = 0
         data['category'] = instance.asset.category
-        data['val_usd'] = float(instance.balance / instance.asset.exchange_rate)
+        data['val_usd'] = float(instance.balance * instance.asset.exchange_rate)
         return Response(data)
 
     def update(self, request, *args, **kwargs):
