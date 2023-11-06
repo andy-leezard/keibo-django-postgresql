@@ -1,10 +1,11 @@
-from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
-from .serializers import AssetSerializer, WalletSerializer
-from .models import Wallet, WalletUser
+from .serializers import KeiboUserSerializer, WalletSerializer
+from .models import KeiboUser, Wallet, WalletUser
+import uuid
 import time
 
 
@@ -46,6 +47,29 @@ def get_wallets(request, role=None, range=None):
         wallet_data['val_usd'] = float(wallet.balance * asset.exchange_rate)
         serialized_wallets.append(wallet_data)
     return Response(serialized_wallets)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_wallet_owner(request, id=None):
+    # Validate that wallet_id is provided and is in UUID format
+    try:
+        uuid.UUID(id)
+    except ValueError:
+        return Response(
+            {'detail': 'Invalid wallet_id format. It should be a UUID.'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    try:
+        user = KeiboUser.objects.get(wallet=id)
+        # Serialize the queryset
+        serializer = KeiboUserSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except KeiboUser.DoesNotExist:
+        return Response(
+            {'detail': 'No user by this id is attached to this wallet.'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
 
 class WalletCreateView(generics.ListCreateAPIView):
@@ -105,3 +129,4 @@ class WalletUpdateView(generics.RetrieveUpdateDestroyAPIView):
         if not wallet_user or wallet_user.role != 4:
             raise PermissionDenied("You do not have permission to delete this wallet.")
         return super().destroy(request, *args, **kwargs)
+
