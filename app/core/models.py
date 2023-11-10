@@ -5,6 +5,7 @@ from django.contrib.auth.models import (
     AbstractBaseUser,
     PermissionsMixin,
 )
+from datetime import date
 from decimal import Decimal
 import uuid
 from .utils import generate_random_string
@@ -39,7 +40,8 @@ class KeiboUser(AbstractBaseUser, PermissionsMixin):
     avatar = models.URLField(blank=True, null=True)
     registered_at = models.DateTimeField(default=timezone.now)
 
-    is_active = models.BooleanField(default=True)  # Djoser needs it false either way.
+    # Djoser needs it false either way.
+    is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
 
@@ -93,6 +95,26 @@ class Wallet(models.Model):
 
     def __str__(self):
         return self.name
+
+    def update_balance(self, new_balance, reason=None):
+        BalanceHistory.objects.create(
+            wallet=self,
+            old_balance=self.balance,
+            new_balance=new_balance,
+            reason=reason
+        )
+        self.balance = new_balance
+        self.save()
+
+
+class BalanceHistory(models.Model):
+    wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    old_balance = models.DecimalField(max_digits=19, decimal_places=8)
+    new_balance = models.DecimalField(max_digits=19, decimal_places=8)
+
+    def __str__(self):
+        return f"Balance change for {self.wallet.name} on {self.timestamp}"
 
 
 ROLES = [
