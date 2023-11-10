@@ -2,6 +2,7 @@ from django.contrib import admin
 from .models import (
     KeiboUser,
     Wallet,
+    BalanceHistory,
     WalletUser,
     Transaction,
     Asset,
@@ -36,6 +37,17 @@ class WalletAdmin(admin.ModelAdmin):
     ]
     list_filter = ['asset', 'is_public']
     search_fields = ['name']
+
+
+@admin.register(BalanceHistory)
+class BalanceHistoryAdmin(admin.ModelAdmin):
+    list_display = [
+        'id',
+        'wallet',
+        'timestamp',
+        'old_balance',
+        'new_balance'
+    ]
 
 
 @admin.register(WalletUser)
