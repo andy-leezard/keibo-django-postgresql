@@ -80,41 +80,33 @@ class Wallet(models.Model):
     id = models.UUIDField(
         default=uuid.uuid4, primary_key=True, unique=True, editable=False
     )
-    asset = models.ForeignKey(Asset, on_delete=models.CASCADE)
+    # custom name of the wallet
+    name = models.CharField(max_length=200, default=default_wallet_name)
+    # current asset
+    asset = models.ForeignKey(
+        Asset, on_delete=models.CASCADE, related_name='%(class)s_asset')
+    # the other asset that's been traded to acquire the current asset (ex: usd, eur...)
+    # (Only used to measure PNL)
+    input_asset = models.ForeignKey(
+        Asset, on_delete=models.CASCADE, related_name='%(class)s_input_asset', blank=True)
     # name of the financial institution or the trademark of the personal wallet provider
     provider = models.CharField(
         max_length=48,
         default="",
     )
-    # custom name of the wallet
-    name = models.CharField(max_length=200, default=default_wallet_name)
+    # current balance
     balance = models.DecimalField(
+        max_digits=19, decimal_places=8, default=Decimal('0.00')
+    )
+    # accumulated amount of the counterparty asset traded to acquire the current asset
+    # (Only used to measure PNL)
+    input_amount = models.DecimalField(
         max_digits=19, decimal_places=8, default=Decimal('0.00')
     )
     is_public = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
-
-    def update_balance(self, new_balance, reason=None):
-        BalanceHistory.objects.create(
-            wallet=self,
-            old_balance=self.balance,
-            new_balance=new_balance,
-            reason=reason
-        )
-        self.balance = new_balance
-        self.save()
-
-
-class BalanceHistory(models.Model):
-    wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE)
-    timestamp = models.DateTimeField(auto_now_add=True)
-    old_balance = models.DecimalField(max_digits=19, decimal_places=8)
-    new_balance = models.DecimalField(max_digits=19, decimal_places=8)
-
-    def __str__(self):
-        return f"Balance change for {self.wallet.name} on {self.timestamp}"
 
 
 ROLES = [
@@ -128,10 +120,10 @@ ROLES = [
 # Used for WalletUser and Invitations
 class AbstractWalletReference(models.Model):
     user = models.ForeignKey(
-        KeiboUser, on_delete=models.CASCADE, related_name='%(class)s_users'
+        KeiboUser, on_delete=models.CASCADE, related_name='%(class)s_user'
     )
     wallet = models.ForeignKey(
-        Wallet, on_delete=models.CASCADE, related_name='%(class)s_wallets'
+        Wallet, on_delete=models.CASCADE, related_name='%(class)s_wallet'
     )
     role = models.IntegerField(choices=ROLES)
 
@@ -151,35 +143,17 @@ class Transaction(models.Model):
     id = models.UUIDField(
         default=uuid.uuid4, primary_key=True, unique=True, editable=False
     )
+    wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name='%(class)s_wallet')
+    executed_at = models.DateTimeField(auto_now_add=True)
+    settled_at = models.DateTimeField(null=True, blank=True)
     category = models.CharField(max_length=32)  # tax, gas, etc...
-    recipient = models.ForeignKey(
-        Wallet,
-        on_delete=models.SET_NULL,
-        related_name='recipient',
-        null=True,
-        blank=True,
-    )
-    sender = models.ForeignKey(
-        Wallet, on_delete=models.SET_NULL, related_name='sender', null=True, blank=True
-    )
-    confirmed_by_recipient = models.BooleanField(default=False)
-    confirmed_by_sender = models.BooleanField(default=False)
-    gross_amount = models.DecimalField(max_digits=19, decimal_places=8)
-    net_amount = models.DecimalField(max_digits=19, decimal_places=8)
-    transaction_fee = models.DecimalField(
-        max_digits=19, decimal_places=8, default=Decimal(0)
-    )
-    date = models.DateTimeField(auto_now_add=True)  # executed_at
+    # to whom (or from whom) ?
+    counterparty = models.CharField(max_length=256)  # tax, gas, etc...
+    # description
     description = models.CharField(max_length=200, blank=True)
-
-    # added_by = models.ForeignKey(OAuthUser, on_delete=models.CASCADE)
-    def save(self, *args, **kwargs):
-        if self.recipient is None and self.sender is None:
-            self.delete()
-        else:
-            if self.net_amount + self.transaction_fee != self.gross_amount:
-                self.transaction_fee = self.gross_amount - self.net_amount
-            super().save(*args, **kwargs)
+    amount = models.DecimalField(max_digits=19, decimal_places=8)
+    # means the expense was avoidable - was charged within the disposable range of income
+    disposable = models.BooleanField(default=False)
 
 
 # Example: S&P 500, crypto total market cap, interest rate, etc...

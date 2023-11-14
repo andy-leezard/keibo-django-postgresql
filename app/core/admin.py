@@ -2,7 +2,6 @@ from django.contrib import admin
 from .models import (
     KeiboUser,
     Wallet,
-    BalanceHistory,
     WalletUser,
     Transaction,
     Asset,
@@ -29,25 +28,14 @@ class AssetAdmin(admin.ModelAdmin):
 class WalletAdmin(admin.ModelAdmin):
     list_display = [
         'id',
-        'provider',
-        'asset',
-        'balance',
         'name',
+        'asset',
+        'provider',
+        'balance',
         'is_public',
     ]
     list_filter = ['asset', 'is_public']
     search_fields = ['name']
-
-
-@admin.register(BalanceHistory)
-class BalanceHistoryAdmin(admin.ModelAdmin):
-    list_display = [
-        'id',
-        'wallet',
-        'timestamp',
-        'old_balance',
-        'new_balance'
-    ]
 
 
 @admin.register(WalletUser)
@@ -60,12 +48,13 @@ class WalletUserAdmin(admin.ModelAdmin):
 @admin.register(Transaction)
 class TransactionAdmin(admin.ModelAdmin):
     list_display = [
-        'recipient',
-        'sender',
-        'date',
-        'description',
-        'confirmed_by_recipient',
-    ]  # 'added_by'
-    list_filter = ['confirmed_by_recipient']
-    search_fields = ['recipient__name', 'sender__name', 'description']
-    raw_id_fields = ['recipient', 'sender']  # 'added_by'
+        'wallet',
+        'executed_at',
+        'settled_at',
+        'category',
+        'amount',
+        'disposable'
+    ]
+    list_filter = ['executed_at']
+    search_fields = ['wallet__name']
+    raw_id_fields = ['wallet']

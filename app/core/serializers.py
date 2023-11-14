@@ -23,20 +23,26 @@ class BalanceField(serializers.Field):
 
 class WalletSerializer(serializers.ModelSerializer):
     balance = BalanceField()
+    input_amount = BalanceField()
 
     class Meta:
         model = Wallet
         fields = [
             'id',
+            'name',
             'asset',
+            'input_asset',
             'provider',
             'balance',
-            'name',
+            'input_amount',
             'is_public',
         ]
 
     def get_balance(self, obj):
         return float(obj.balance)
+
+    def get_input_amount(self, obj):
+        return float(obj.input_amount)
 
 
 class WalletUserSerializer(serializers.ModelSerializer):
@@ -66,35 +72,29 @@ class KeiboUserSerializer(serializers.ModelSerializer):
 
 
 class TransactionSerializer(serializers.ModelSerializer):
-    date = serializers.SerializerMethodField()
-    gross_amount = serializers.SerializerMethodField()
-    net_amount = serializers.SerializerMethodField()
-    transaction_fee = serializers.SerializerMethodField()
+    executed_at = serializers.SerializerMethodField()
+    settled_at = serializers.SerializerMethodField()
+    amount = serializers.SerializerMethodField()
 
     class Meta:
         model = Transaction
         fields = [
             'id',
+            'wallet',
+            'executed_at',
+            'settled_at',
             'category',
-            'recipient',
-            'sender',
-            'confirmed_by_recipient',
-            'confirmed_by_sender',
-            'gross_amount',
-            'net_amount',
-            'transaction_fee',
+            'counterparty',
             'description',
-            'date',
+            'amount',
+            'disposable',
         ]
 
-    def get_date(self, obj):
-        return int(obj.date.timestamp() * 1000)
+    def get_executed_at(self, obj):
+        return int(obj.executed_at.timestamp() * 1000)
 
-    def get_gross_amount(self, obj):
-        return float(obj.gross_amount)
+    def get_settled_at(self, obj):
+        return int(obj.settled_at.timestamp() * 1000)
 
-    def get_net_amount(self, obj):
-        return float(obj.net_amount)
-
-    def get_transaction_fee(self, obj):
-        return float(obj.transaction_fee)
+    def get_amount(self, obj):
+        return float(obj.amount)
