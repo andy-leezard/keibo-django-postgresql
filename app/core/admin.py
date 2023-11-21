@@ -53,7 +53,7 @@ class TransactionAdmin(admin.ModelAdmin):
         'settled_at',
         'category',
         'amount',
-        'disposable'
+        'tags'
     ]
     list_filter = ['executed_at']
     search_fields = ['wallet__name']
