@@ -152,7 +152,7 @@ class Transaction(models.Model):
     # description
     description = models.CharField(max_length=200, blank=True)
     amount = models.DecimalField(max_digits=19, decimal_places=8)
-    tags = ArrayField(models.CharField(max_length=24), null=True, blank=True)
+    tags = ArrayField(models.CharField(max_length=24), default=list, blank=True)
     # means the expense was avoidable - was charged within the disposable range of income
     # disposable = models.BooleanField(default=False)
 
