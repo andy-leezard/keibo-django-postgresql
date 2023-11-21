@@ -37,7 +37,7 @@ SUPPORTED_CRYPTOS = {
 }
 
 
-def get_crypto_prices():
+def get_crypto_prices(debug=False):
     url = API_CRYPTO_PRICES
 
     querystring = {
@@ -51,7 +51,9 @@ def get_crypto_prices():
     }
 
     try:
-        response = requests.get(url, headers=headers, params=querystring)  # type: ignore
+        response = requests.get(
+            url, headers=headers, params=querystring
+        )  # type: ignore
         response.raise_for_status()  # Raises a HTTPError if the response status is 4xx, 5xx
     except requests.exceptions.RequestException as e:
         logger.info(f"Request to {url} failed with exception: {e}")
@@ -62,18 +64,27 @@ def get_crypto_prices():
     new_assets = 0
     updated_assets = 0
     for crypto, details in crypto_data.items():
-        rate = details.get('usd')
+        rate = details.get("usd")
         if rate is not None:
             crypto = crypto.lower()
             try:
                 asset = Asset.objects.get(id=crypto)
-                asset.exchange_rate = rate
-                asset.save()
-                updated_assets += 1
+                if asset.exchange_rate != rate:
+                    if debug:
+                        logger.info(
+                            f"Crypto updated: {crypto} to usd ratio (price) : {rate}$"
+                        )
+                    asset.exchange_rate = rate
+                    asset.save()
+                    updated_assets += 1
             except Asset.DoesNotExist:
+                if debug:
+                    logger.info(
+                        f"Crypto added: {crypto} to usd ratio (price) : {rate}$"
+                    )
                 new_assets += 1
                 Asset.objects.create(
                     id=crypto, exchange_rate=rate, category=AssetCategory.CRYPTO
                 )
-
-    logger.info(f"Crypto: added {new_assets} and updated {updated_assets} assets!")
+    if debug:
+        logger.info(f"Crypto: added {new_assets} and updated {updated_assets} assets!")
