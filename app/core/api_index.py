@@ -306,3 +306,21 @@ def get_inflation_aed(debug=False):
 
 def get_inflation_chf(debug=False):
     get_stlouisfed_observation(INFLATION_CHF, "annual", debug)
+
+def get_all_index(debug=False):
+    get_fed_funds_rate(debug)
+    get_ecb_dfr(debug)
+    get_ecb_mror(debug)
+    get_ecb_lfr(debug)
+    get_bok_interest_rates(debug)
+    get_inflation_euro(debug)
+    get_inflation_usd(debug)
+    get_inflation_krw(debug)
+    get_inflation_yuan(debug)
+    get_inlfation_yen(debug)
+    get_inflation_ruble(debug)
+    get_inflation_gbp(debug)
+    get_inflation_idr(debug)
+    get_inflation_rupee(debug)
+    get_inflation_aed(debug)
+    get_inflation_chf(debug)
