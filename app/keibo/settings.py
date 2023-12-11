@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'social_django',
     # Apps
     'core',
+    'web',
     # Scheduled tasks
     'django_celery_beat',
 ]
