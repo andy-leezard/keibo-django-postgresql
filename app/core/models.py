@@ -6,7 +6,7 @@ from django.contrib.auth.models import (
     PermissionsMixin,
 )
 from django.contrib.postgres.fields import ArrayField
-from decimal import Decimal
+from decimal import Decimal, DivisionByZero
 import uuid
 from .utils import generate_random_string
 
@@ -45,6 +45,9 @@ class KeiboUser(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
 
+    # Additional custom properties
+    is_prime_user = models.BooleanField(default=False)
+
     objects = KeiboUserManager()
 
     USERNAME_FIELD = 'email'  # is intrinsically required
@@ -55,7 +58,7 @@ class KeiboUser(AbstractBaseUser, PermissionsMixin):
 
 
 class AssetCategory(models.TextChoices):
-    CASH = 'cash'
+    CASH = 'cash'  # is currency
     EQUITY = 'equity'
     CRYPTO = 'crypto'
     FUND = 'fund'
@@ -73,7 +76,7 @@ class Asset(models.Model):
 
 
 def default_wallet_name():
-    return generate_random_string(prefix="wallet_")
+    return generate_random_string(prefix='wallet_')
 
 
 class Wallet(models.Model):
@@ -84,29 +87,56 @@ class Wallet(models.Model):
     name = models.CharField(max_length=200, default=default_wallet_name)
     # current asset
     asset = models.ForeignKey(
-        Asset, on_delete=models.CASCADE, related_name='%(class)s_asset')
-    # the other asset that's been traded to acquire the current asset (ex: usd, eur...)
-    # (Only used to measure PNL)
-    input_asset = models.ForeignKey(
-        Asset, on_delete=models.CASCADE, related_name='%(class)s_input_asset', blank=True)
+        Asset, on_delete=models.CASCADE, related_name='%(class)s_asset'
+    )
     # name of the financial institution or the trademark of the personal wallet provider
     provider = models.CharField(
         max_length=48,
-        default="",
+        default='',
     )
     # current balance
     balance = models.DecimalField(
-        max_digits=19, decimal_places=8, default=Decimal('0.00')
-    )
-    # accumulated amount of the counterparty asset traded to acquire the current asset
-    # (Only used to measure PNL)
-    input_amount = models.DecimalField(
         max_digits=19, decimal_places=8, default=Decimal('0.00')
     )
     is_public = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
+
+
+class WalletPNLTracker(models.Model):
+    wallet = models.ForeignKey(
+        Wallet, on_delete=models.CASCADE, related_name='%(class)s_wallet'
+    )
+    # the asset that's been traded to acquire the wallet's asset (ex: usd, eur...)
+    asset = models.ForeignKey(
+        Asset, on_delete=models.CASCADE, related_name='%(class)s_asset'
+    )
+    # current total amount of the counterparty asset traded to acquire the current asset
+    input_amount = models.DecimalField(
+        max_digits=19, decimal_places=8, default=Decimal('0.00')
+    )
+    # average purchase price
+    average_purchase_ratio = models.DecimalField(
+        max_digits=19, decimal_places=8, default=Decimal('0.00')
+    )
+
+    def save(self, *args, **kwargs):
+        try:
+            # Ensure wallet's balance is not zero to avoid division by zero
+            if self.wallet.balance != Decimal('0.00'):
+                self.average_purchase_ratio = self.input_amount / self.wallet.balance
+            else:
+                # Handle the case where balance is zero, if applicable
+                # For example, set it to default or perform another calculation
+                self.average_purchase_ratio = Decimal('0.00')
+        except DivisionByZero:
+            self.average_purchase_ratio = Decimal('0.00')
+
+        super(WalletPNLTracker, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return f'{self.wallet.name} - {self.asset}'
 
 
 ROLES = [
@@ -143,18 +173,24 @@ class Transaction(models.Model):
     id = models.UUIDField(
         default=uuid.uuid4, primary_key=True, unique=True, editable=False
     )
-    wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name='%(class)s_wallet')
+    wallet = models.ForeignKey(
+        Wallet, on_delete=models.CASCADE, related_name='%(class)s_wallet'
+    )
+    # Self-referential ForeignKey
+    # If exists, it means that this transaction depends on another (transfer for example)
+    origin = models.ForeignKey(
+        'self',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='transaction_of_origin',
+    )
     executed_at = models.DateTimeField(auto_now_add=True)
     settled_at = models.DateTimeField(null=True, blank=True)
     category = models.CharField(max_length=32)  # tax, gas, etc...
-    # to whom (or from whom) ?
-    counterparty = models.CharField(max_length=256)  # tax, gas, etc...
-    # description
     description = models.CharField(max_length=200, blank=True)
     amount = models.DecimalField(max_digits=19, decimal_places=8)
     tags = ArrayField(models.CharField(max_length=24), default=list, blank=True)
-    # means the expense was avoidable - was charged within the disposable range of income
-    # disposable = models.BooleanField(default=False)
 
 
 # Example: S&P 500, crypto total market cap, interest rate, etc...
