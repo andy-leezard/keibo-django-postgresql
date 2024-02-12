@@ -1,5 +1,6 @@
 import requests
 import logging
+from core.lib.supabase.api.update_asset import update_asset
 from core.models import Asset, AssetCategory
 from keibo.settings import (
     API_PROVIDER_KEY_HEADER,
@@ -26,7 +27,6 @@ SUPPORTED_CRYPTOS = {
     "matic-network",
     "polkadot",
     "litecoin",
-    "binance-usd",
     "avalanche-2",
     "uniswap",
     "chainlink",
@@ -34,6 +34,7 @@ SUPPORTED_CRYPTOS = {
     "ethereum-classic",
     "stellar",
     "aave",
+    "dydx",
 }
 
 
@@ -67,6 +68,7 @@ def get_crypto_prices(debug=False):
         rate = details.get("usd")
         if rate is not None:
             crypto = crypto.lower()
+            update_asset(crypto, rate)
             try:
                 asset = Asset.objects.get(id=crypto)
                 if asset.exchange_rate != rate:
