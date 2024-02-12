@@ -1,6 +1,7 @@
 import requests
 import logging
 from decimal import Decimal
+from core.lib.supabase.api.update_asset import update_asset
 from core.models import Asset, AssetCategory
 from keibo.settings import (
     API_PROVIDER_KEY_HEADER,
@@ -13,18 +14,18 @@ from keibo.settings import (
 logger = logging.getLogger(__name__)
 
 SUPPORTED_CURRENCIES = {
-    'usd',
-    'eur',
-    'chf',
-    'gbp',
-    'jpy',
-    'rub',
-    'krw',
-    'cny',
-    'cad',
-    'inr',
-    'idr',
-    'aed'
+    "usd",
+    "eur",
+    "chf",
+    "gbp",
+    "jpy",
+    "rub",
+    "krw",
+    "cny",
+    "cad",
+    "inr",
+    "idr",
+    "aed",
 }
 
 
@@ -45,11 +46,7 @@ def get_exchange_rates(debug=False):
         return
 
     data = response.json()
-    rates = data.get('rates')
-
-    if debug:
-        for currency, rate in rates.items():
-            logger.info(f"{currency} to usd exchange ratio : {rate}")
+    rates = data.get("rates")
 
     if not isinstance(rates, dict):
         logger.info("Unexpected data format. 'rates' should be a dictionary.")
@@ -75,15 +72,24 @@ def get_exchange_rates(debug=False):
         currency = currency.lower()
         # Register only supported currencies
         if currency in SUPPORTED_CURRENCIES:
+            # Inverse the rate to format 1X = ?USD
+            # Although it's not ideal for some currencies with so many decimals,
+            # it should be standardized this way - just like crypto, equity, funds etc.
+            inversed_rate = 1 / rate
+            if debug:
+                logger.info(f"1 {currency} to usd exchange ratio : {inversed_rate}")
+            update_asset(currency, inversed_rate)
             try:
                 asset = Asset.objects.get(id=currency)
-                asset.exchange_rate = rate
+                asset.exchange_rate = inversed_rate
                 asset.save()
                 updated_assets += 1
             except Asset.DoesNotExist:
                 new_assets += 1
                 Asset.objects.create(
-                    id=currency, exchange_rate=rate, category=AssetCategory.CASH
+                    id=currency,
+                    exchange_rate=inversed_rate,
+                    category=AssetCategory.CASH,
                 )
 
     logger.info(f"Currencies: added {new_assets} and updated {updated_assets} assets!")
