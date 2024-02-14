@@ -23,6 +23,4 @@ def update_eco_index(kwargs):
         serializable_kwargs["decennial_delta"] = float(
             serializable_kwargs["decennial_delta"]
         )
-    logger.info("serializable_kwargs")
-    logger.info(serializable_kwargs)
     supa_client.table("economic_index").upsert(serializable_kwargs).execute()
