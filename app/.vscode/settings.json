@@ -4,11 +4,9 @@
     "editor.formatOnType": true,
     "editor.formatOnSave": true,
     "editor.insertSpaces": true,
-    "editor.tabSize": 4
+    "editor.tabSize": 4,
+    "editor.autoIndent": "advanced"
   },
-  "python.formatting.provider": "none",
-  "python.linting.pylintEnabled": true,
-  "python.linting.enabled": false,
-  "python.analysis.typeCheckingMode": "basic",
+  "python.analysis.typeCheckingMode": "off",
   "editor.formatOnSave": true
 }
