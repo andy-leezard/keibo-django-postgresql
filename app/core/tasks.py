@@ -32,10 +32,15 @@ def update_exchange_rate():
 @shared_task()
 def update_crypto_prices():
     get_crypto_prices()
-    
+
+
+@shared_task()
+def update_all_index():
+    get_all_index()
+
+
 @shared_task()
 def update_all():
     get_crypto_prices(True)
     get_exchange_rates(True)
     get_all_index(True)
-    
