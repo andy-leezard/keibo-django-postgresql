@@ -175,7 +175,7 @@ docker images prune
 *You can also prune the volumens. Do this if you're not storing files locally (which you shouldn't be anyway, they should be in something like AWS S3) -Nitin Nain from StackOverflow-*
 
 ```bash
-docker systeme prune --volumes
+docker system prune --volumes
 ```
 
 ## Troubleshooting database related problems
