@@ -80,7 +80,7 @@ INFLATION_CHF = "FPCPITOTLZGCHE"
 
 def get_stlouisfed_observation(seriesid, interval="monthly", debug=False):
     observation_start = get_past_date_in_yyyy_mm_dd(
-        3650 if interval == "annual" else 30 if interval == "daily" else 365
+        4030 if interval == "annual" else 32 if interval == "daily" else 403
     )
     frequency = (
         "a"
@@ -156,17 +156,16 @@ def get_stlouisfed_observation(seriesid, interval="monthly", debug=False):
     created = False
 
     kwargs = {"id": seriesid, "value": latest_rate}
-    if daily_delta:
+    if daily_delta != None:
         kwargs["daily_delta"] = daily_delta
-    if weekly_delta:
+    if weekly_delta != None:
         kwargs["weekly_delta"] = weekly_delta
-    if monthly_delta:
+    if monthly_delta != None:
         kwargs["monthly_delta"] = monthly_delta
-    if yearly_delta:
+    if yearly_delta != None:
         kwargs["yearly_delta"] = yearly_delta
-    if decennial_delta:
+    if decennial_delta != None:
         kwargs["decennial_delta"] = decennial_delta
-
     # START - SUPA PLUGIN
     update_eco_index(kwargs)
     # END - SUPA PLUGIN
@@ -178,14 +177,9 @@ def get_stlouisfed_observation(seriesid, interval="monthly", debug=False):
     except EconomicIndex.DoesNotExist:
         created = True
         index = EconomicIndex.objects.create(**kwargs)
-    if created:
-        logger.info(
-            f"Successfully created economic index ({seriesid}) : ({latest_rate})%"
-        )
-    else:
-        logger.info(
-            f"Successfully updated economic index ({seriesid} : {latest_rate})%"
-        )
+    logger.info(
+        f"Successfully {'created' if created else 'updated'} economic index ({seriesid}) : ({latest_rate})%"
+    )
 
 
 def get_ecos_bok_kr(asset_class, debug=False):
@@ -234,14 +228,9 @@ def get_ecos_bok_kr(asset_class, debug=False):
     except EconomicIndex.DoesNotExist:
         created = True
         EconomicIndex.objects.create(**kwargs)
-    if created:
-        logger.info(
-            f"Successfully created economic index ({asset_class}) : ({latest_rate})%"
-        )
-    else:
-        logger.info(
-            f"Successfully updated economic index ({asset_class} : {latest_rate})%"
-        )
+    logger.info(
+        f"Successfully {'created' if created else 'updated'} economic index ({asset_class}) : ({latest_rate})%"
+    )
 
 
 def get_fed_funds_rate(debug=False):
@@ -311,7 +300,7 @@ def get_inflation_chf(debug=False):
     get_stlouisfed_observation(INFLATION_CHF, "annual", debug)
 
 
-def get_all_index(debug=False):
+def get_all_indexes(debug=False):
     get_fed_funds_rate(debug)
     get_ecb_dfr(debug)
     get_ecb_mror(debug)

@@ -2,7 +2,7 @@ from celery import shared_task
 from datetime import datetime
 from .api_crypto import get_crypto_prices
 from .api_currency import get_exchange_rates
-from .api_index import get_all_index
+from .api_index import get_all_indexes
 import logging
 
 logger = logging.getLogger(__name__)
@@ -35,12 +35,12 @@ def update_crypto_prices():
 
 
 @shared_task()
-def update_all_index():
-    get_all_index()
+def update_all_indexes():
+    get_all_indexes()
 
 
 @shared_task()
 def update_all():
     get_crypto_prices(True)
     get_exchange_rates(True)
-    get_all_index(True)
+    get_all_indexes(True)
