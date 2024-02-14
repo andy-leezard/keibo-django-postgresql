@@ -1,5 +1,7 @@
+import copy
 import requests
 import logging
+from core.lib.supabase.api.update_eco_index import update_eco_index
 from core.models import EconomicIndex
 from keibo.settings import API_FRED_KEY, API_ECOS_BOK_KR_KEY
 from datetime import datetime, timedelta
@@ -13,16 +15,16 @@ def get_past_date_in_yyyy_mm_dd(days: int, without_dash=False):
     current_date = datetime.now()
     date_ago = current_date - timedelta(days)
     if without_dash:
-        return date_ago.strftime('%Y%m%d')
-    return date_ago.strftime('%Y-%m-%d')
+        return date_ago.strftime("%Y%m%d")
+    return date_ago.strftime("%Y-%m-%d")
 
 
 def get_past_date_in_yyyy_mm(days: int, without_dash=False):
     current_date = datetime.now()
     date_ago = current_date - timedelta(days)
     if without_dash:
-        return date_ago.strftime('%Y%m')
-    return date_ago.strftime('%Y-%m')
+        return date_ago.strftime("%Y%m")
+    return date_ago.strftime("%Y-%m")
 
 
 def get_list_item(list, index):
@@ -83,16 +85,12 @@ def get_stlouisfed_observation(seriesid, interval="monthly", debug=False):
     frequency = (
         "a"
         if interval == "annual"
-        else "w"
-        if interval == "weekly"
-        else "d"
-        if interval == "daily"
-        else "m"
+        else "w" if interval == "weekly" else "d" if interval == "daily" else "m"
     )
-    url = f'https://api.stlouisfed.org/fred/series/observations?series_id={seriesid}&api_key={API_FRED_KEY}&file_type=json&observation_start={observation_start}&frequency={frequency}&sort_order=desc'
+    url = f"https://api.stlouisfed.org/fred/series/observations?series_id={seriesid}&api_key={API_FRED_KEY}&file_type=json&observation_start={observation_start}&frequency={frequency}&sort_order=desc"
     response = requests.get(url)
     data = response.json()
-    observations = data['observations']
+    observations = data["observations"]
     if debug:
         for item in observations:
             logger.info(f"{item['date']} : {item['value']}%")
@@ -102,8 +100,8 @@ def get_stlouisfed_observation(seriesid, interval="monthly", debug=False):
     # it is necessary to skip these values if exists.
     offset = 0
     for item in observations:
-        if str_can_be_decimal(item['value']):
-            latest_rate = Decimal(item['value'])
+        if str_can_be_decimal(item["value"]):
+            latest_rate = Decimal(item["value"])
             break
         else:
             offset += 1
@@ -140,44 +138,45 @@ def get_stlouisfed_observation(seriesid, interval="monthly", debug=False):
         last_month = get_list_item(observations, offset + 29)
         last_year = get_list_item(observations, offset + 364)
     if yesterday:
-        if str_can_be_decimal(yesterday['value']):
-            daily_delta = latest_rate - Decimal(yesterday['value'])
+        if str_can_be_decimal(yesterday["value"]):
+            daily_delta = latest_rate - Decimal(yesterday["value"])
     if last_week:
-        if str_can_be_decimal(last_week['value']):
-            weekly_delta = latest_rate - Decimal(last_week['value'])
+        if str_can_be_decimal(last_week["value"]):
+            weekly_delta = latest_rate - Decimal(last_week["value"])
     if last_month:
-        if str_can_be_decimal(last_month['value']):
-            monthly_delta = latest_rate - Decimal(last_month['value'])
+        if str_can_be_decimal(last_month["value"]):
+            monthly_delta = latest_rate - Decimal(last_month["value"])
     if last_year:
-        if str_can_be_decimal(last_year['value']):
-            yearly_delta = latest_rate - Decimal(last_year['value'])
+        if str_can_be_decimal(last_year["value"]):
+            yearly_delta = latest_rate - Decimal(last_year["value"])
     if last_decade:
-        if str_can_be_decimal(last_decade['value']):
-            decennial_delta = latest_rate - Decimal(last_decade['value'])
+        if str_can_be_decimal(last_decade["value"]):
+            decennial_delta = latest_rate - Decimal(last_decade["value"])
 
     created = False
+
+    kwargs = {"id": seriesid, "value": latest_rate}
+    if daily_delta:
+        kwargs["daily_delta"] = daily_delta
+    if weekly_delta:
+        kwargs["weekly_delta"] = weekly_delta
+    if monthly_delta:
+        kwargs["monthly_delta"] = monthly_delta
+    if yearly_delta:
+        kwargs["yearly_delta"] = yearly_delta
+    if decennial_delta:
+        kwargs["decennial_delta"] = decennial_delta
+
+    # START - SUPA PLUGIN
+    update_eco_index(kwargs)
+    # END - SUPA PLUGIN
     try:
         index = EconomicIndex.objects.get(id=seriesid)
-        index.value = latest_rate
-        index.daily_delta = daily_delta
-        index.weekly_delta = weekly_delta
-        index.monthly_delta = monthly_delta
-        index.yearly_delta = yearly_delta
-        index.decennial_delta = decennial_delta
+        for key, value in kwargs.items():
+            setattr(index, key, value)
         index.save()
     except EconomicIndex.DoesNotExist:
         created = True
-        kwargs = {'id': seriesid, 'value': latest_rate}
-        if daily_delta:
-            kwargs['daily_delta'] = daily_delta
-        if weekly_delta:
-            kwargs['weekly_delta'] = weekly_delta
-        if monthly_delta:
-            kwargs['monthly_delta'] = monthly_delta
-        if yearly_delta:
-            kwargs['yearly_delta'] = yearly_delta
-        if decennial_delta:
-            kwargs['decennial_delta'] = decennial_delta
         index = EconomicIndex.objects.create(**kwargs)
     if created:
         logger.info(
@@ -192,10 +191,10 @@ def get_stlouisfed_observation(seriesid, interval="monthly", debug=False):
 def get_ecos_bok_kr(asset_class, debug=False):
     year_ago = get_past_date_in_yyyy_mm(365, True)
     today = get_past_date_in_yyyy_mm(0, True)
-    url = f'https://ecos.bok.or.kr/api/StatisticSearch/{API_ECOS_BOK_KR_KEY}/json/kr/1/12/{asset_class}/M/{year_ago}/{today}'
+    url = f"https://ecos.bok.or.kr/api/StatisticSearch/{API_ECOS_BOK_KR_KEY}/json/kr/1/12/{asset_class}/M/{year_ago}/{today}"
     response = requests.get(url)
     result = response.json()
-    rows: List = result['StatisticSearch']['row']
+    rows: List = result["StatisticSearch"]["row"]
     rows.reverse()
     if debug:
         for row in rows:
@@ -204,33 +203,37 @@ def get_ecos_bok_kr(asset_class, debug=False):
     last_month = get_list_item(rows, 1)
     last_year = get_list_item(rows, 11)
     monthly_delta, yearly_delta = None, None
-    if latest_rate == None or not str_can_be_decimal(latest_rate['DATA_VALUE']):
+    if latest_rate == None or not str_can_be_decimal(latest_rate["DATA_VALUE"]):
         logger.info(
             f"get_ecos_bok_kr - failed to get the latest_rate for {asset_class}%"
         )
         return
-    latest_rate = Decimal(latest_rate['DATA_VALUE'])
+    latest_rate = Decimal(latest_rate["DATA_VALUE"])
     if last_month:
-        if str_can_be_decimal(last_month['DATA_VALUE']):
-            monthly_delta = latest_rate - Decimal(last_month['DATA_VALUE'])
+        if str_can_be_decimal(last_month["DATA_VALUE"]):
+            monthly_delta = latest_rate - Decimal(last_month["DATA_VALUE"])
     if last_year:
-        if str_can_be_decimal(last_year['DATA_VALUE']):
-            yearly_delta = latest_rate - Decimal(last_year['DATA_VALUE'])
+        if str_can_be_decimal(last_year["DATA_VALUE"]):
+            yearly_delta = latest_rate - Decimal(last_year["DATA_VALUE"])
+
     created = False
+
+    kwargs = {"id": asset_class, "value": latest_rate}
+    if monthly_delta:
+        kwargs["monthly_delta"] = monthly_delta
+    if yearly_delta:
+        kwargs["yearly_delta"] = yearly_delta
+    # START - SUPA PLUGIN
+    update_eco_index(kwargs)
+    # END - SUPA PLUGIN
     try:
         index = EconomicIndex.objects.get(id=asset_class)
-        index.value = latest_rate
-        index.monthly_delta = monthly_delta
-        index.yearly_delta = yearly_delta
+        for key, value in kwargs.items():
+            setattr(index, key, value)
         index.save()
     except EconomicIndex.DoesNotExist:
         created = True
-        EconomicIndex.objects.create(
-            id=asset_class,
-            value=latest_rate,
-            monthly_delta=monthly_delta,
-            yearly_delta=yearly_delta,
-        )
+        EconomicIndex.objects.create(**kwargs)
     if created:
         logger.info(
             f"Successfully created economic index ({asset_class}) : ({latest_rate})%"
@@ -261,7 +264,7 @@ def get_ecb_lfr(debug=False):
 
 
 def get_bok_interest_rates(debug=False):
-    get_ecos_bok_kr('722Y001', debug)
+    get_ecos_bok_kr("722Y001", debug)
 
 
 def get_inflation_euro(debug=False):
@@ -306,6 +309,7 @@ def get_inflation_aed(debug=False):
 
 def get_inflation_chf(debug=False):
     get_stlouisfed_observation(INFLATION_CHF, "annual", debug)
+
 
 def get_all_index(debug=False):
     get_fed_funds_rate(debug)
