@@ -110,3 +110,6 @@ dmypy.json
 Dockerfile-local
 Dockerfile-production
 .env.prod
+
+# Mac OS
+.DS_Store
