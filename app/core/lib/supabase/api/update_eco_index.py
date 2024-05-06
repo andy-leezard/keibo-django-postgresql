@@ -1,11 +1,14 @@
 from core.lib.supabase.supa_client import supa_client
 import copy
 import logging
+from os import getenv
 
 logger = logging.getLogger(__name__)
 
 
 def update_eco_index(kwargs):
+    if getenv("USE_SUPABASE_PLUGIN") != "True":
+        return
     serializable_kwargs = copy.copy(kwargs)
     if "value" in serializable_kwargs:
         serializable_kwargs["value"] = float(serializable_kwargs["value"])
